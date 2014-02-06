@@ -106,11 +106,10 @@ class GA():
        #print score
        my_alig.mutation()
 
-        
-my_ga = GA("1aho.rsf")
-my_ga.print_seq()
-print 
-my_ga.test()
-my_ga.print_seq()
+for i in range(1000):        
+    my_ga = GA("1aho.rsf") 
+    my_ga.test()
+    my_ga.print_seq()
+
 
 
