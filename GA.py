@@ -36,7 +36,13 @@ class GA():
         """
         for i, line in enumerate(self.np_seq):
             #print the name of the sequence and the values of the sequence
-            print self.seq_names[i], ''.join(line)
+            my_str = ''.join(line)
+            new_str = ''
+            for j, char in enumerate(my_str):
+                new_str += char
+                if j % 10 == 0 and j != 0:
+                    new_str += ' '
+            print self.seq_names[i] , new_str
 
 
     def read_data(self):
@@ -106,10 +112,12 @@ class GA():
        #print score
        my_alig.mutation()
 
-for i in range(1000):        
-    my_ga = GA("1aho.rsf") 
-    my_ga.test()
-    my_ga.print_seq()
+        
+my_ga = GA("1aho.rsf")
+my_ga.print_seq()
+my_ga.test()
+print
+my_ga.print_seq()
 
 
 

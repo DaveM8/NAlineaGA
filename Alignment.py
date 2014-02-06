@@ -27,7 +27,7 @@ class Alignment():
         """
         mu = Mutate.Mutate(self.np_alignment, self.length)
         self.np_alinment = mu.gap_merge()
-        print self.fittness()
+        #print self.fittness()
     def sum_of_pairs(self):
         """
            calculate the sum-op-pairs of an alignment
