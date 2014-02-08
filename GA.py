@@ -103,8 +103,7 @@ class GA():
         for i,line in enumerate(np_seq):
             for j, my_char in enumerate(line):
                 if my_char == '1':
-                    np_seq[i][j] = '.'
-                
+                    np_seq[i][j] = '-'
         return np_seq, seq_name, seq_length
     def test(self):
        my_alig =  Alignment.Alignment(self.np_seq, self.seq_names, self.seq_length)
@@ -113,11 +112,9 @@ class GA():
        my_alig.mutation()
 
         
-my_ga = GA("1aho.rsf")
-my_ga.print_seq()
-my_ga.test()
-print
-my_ga.print_seq()
 
 
-
+for j in range(100000):
+    my_ga = GA("1aho.rsf")
+    #my_ga.print_seq()
+    my_ga.test()

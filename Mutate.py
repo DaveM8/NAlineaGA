@@ -1,17 +1,20 @@
 import numpy as np
+import Scoring
 from random import randint
+
 
 # A class to carry out mutations on the alignment
 class Mutate():
-    smart_dir_prob = 0.5
     """
         Provide matation operators
     """
-    def __init__(self, alignment,seq_length,  num_gaps = 1, smart_retry = 3):
+    def __init__(self, alignment,seq_length,  num_gaps = 1,
+                       smart_retry = 3, smart_dir_prob = 5):
         self.alignment = alignment     # an np array holding the alignment
         self.num_gaps = num_gaps       # the number of gaps to insert in gap_insertion()
         self.smart_retry = smart_retry # number of retrys used in smart operators
         self.seq_length = seq_length
+        self.smart_dir_prob = smart_dir_prob
         #self.choose_oper()
     
     def __insert_gap(self, row, col):
@@ -19,7 +22,7 @@ class Mutate():
            take care of inserting a gap in an alignment
            at position row, col
         """
-        print "Inserting gap at", row, col
+        #print "Inserting gap at", row, col
         # make a copy of the rest of the row droping the last '-'
         rest_of_col = self.alignment[row][col:-1].copy()
         #insert a gap '-'
@@ -42,7 +45,7 @@ class Mutate():
         # remove "lefter" gaps
         cols.reverse()
         for col in cols:
-            print "Removing gap at", row, col
+            #print "Removing gap at", row, col
             # copy all the data after the gap
             row_after_gap = self.alignment[row][col+1:].copy()
             #place that data in the row starting where the gap was
@@ -124,11 +127,9 @@ class Mutate():
                     gap_count += 1
 
             #close the gap 
-            self.__close_gap(row,gap_index)
-            print "Removing gap at", row, gap_index
+            self.__close_gap(row,[gap_index])
             #choose a random position and insert a gap
             new_gap = randint(0, self.seq_length-1)
-            print "Inserting gap at", row, new_gap
             self.__insert_gap(row, new_gap)
         return self.alignment
 
@@ -302,9 +303,75 @@ class Mutate():
                 if gap_count == gap_num:
                     return i
                 gap_count += 1
-        #return i
-    def smart_gap_insertion(self):
-        pass
+    
+    def smart_gap_insertion(self,smart_num_gaps = 1, attempts = 3 ):
+        """
+           Choose a position at random insert a gap
+           then insert a gap at the start or end of every other row
+           
+           check if the alignment has been improved only keep if 
+           alignment is improved on one of sum-of-pairs or
+           identity
+        """
+        # make a copy of the alignment to work on
+        new_alignment = self.alignment.copy()
+
+        score = Scoring.Scoring(self.alignment, self.seq_length)
+        start_score_of_pairs =  score.sum_of_pairs()
+        start_identity = score.identity()
+        for trys in range(attempts):
+            
+
+            # choose a random position
+            row = randint(0, len(new_alignment)-1)
+            col = randint(0, self.seq_length)
+            #print row, col
+            # insert a gap in the random position
+            self.__insert_gap(row, col)
+            # choose a side to insert the gaps in the other rows
+            # each generation it starts at 5 
+            # if the mutation improves the alignment 1 is added
+            # if the mutation makes the alignment worst 1 is subtracted
+            # the higher the value of smart_dir_prob the more lickily
+            # it that gaps are inserted at the start of the sequence
+
+            start_or_end = randint(1,10)
+            if start_or_end < self.smart_dir_prob:
+                #add the gaps at the start
+                start = True
+            else:
+                #add the gaps at the end
+                start = False
+
+            for i, line in enumerate(new_alignment):
+                # do not add a gap at the start of the row we added already
+                if i == row: continue
+                if start == True:
+                    self.__insert_gap(i, 0)
+                else:
+                    self.__insert_gap(i, self.seq_length)
+            # test to see if the new alignment is better
+            new_score = Scoring.Scoring(new_alignment, self.seq_length+1)
+            new_score_of_pairs = new_score.sum_of_pairs()
+            new_identity = new_score.identity()
+            #print "start",  start_score_of_pairs, start_identity
+            #print "now",  new_score_of_pairs, new_identity
+            if new_score_of_pairs > start_score_of_pairs \
+                    and start_identity > new_identity:
+                # one of the scores is better use the new alignment
+                # maybe adjust this to make suer the other is not too much worst
+                print "Found Better"
+                return new_alignment
+            if start:
+                # last time we placed gaps at the start 
+                # we have droped that so subtract 1 from smart_dir_prob
+                # so next time it will be more likely to add gaps at the end
+                self.smart_dir_prob -= 1
+            else:
+                self.smart_dir_prob +=1
+        #print "Keeping alignment"
+        return self.alignment
+        
     def smart_gap_shift(self):
         pass
     def smart_gap_merge(self):
