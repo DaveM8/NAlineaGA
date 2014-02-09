@@ -22,7 +22,7 @@ class Mutate():
            take care of inserting a gap in an alignment
            at position row, col
         """
-        #print "Inserting gap at", row, col
+        print "Inserting gap at", row, col
         # make a copy of the rest of the row droping the last '-'
         rest_of_col = self.alignment[row][col:-1].copy()
         #insert a gap '-'
@@ -45,7 +45,7 @@ class Mutate():
         # remove "lefter" gaps
         cols.reverse()
         for col in cols:
-            #print "Removing gap at", row, col
+            print "Removing gap at", row, col
             # copy all the data after the gap
             row_after_gap = self.alignment[row][col+1:].copy()
             #place that data in the row starting where the gap was
@@ -314,16 +314,14 @@ class Mutate():
            identity
         """
         # make a copy of the alignment to work on
-        new_alignment = self.alignment.copy()
+        old_alignment = self.alignment.copy()
 
         score = Scoring.Scoring(self.alignment, self.seq_length)
         start_score_of_pairs =  score.sum_of_pairs()
         start_identity = score.identity()
-        for trys in range(attempts):
-            
-
+        for trys in range(attempts):      
             # choose a random position
-            row = randint(0, len(new_alignment)-1)
+            row = randint(0, len(self.alignment)-1)
             col = randint(0, self.seq_length)
             #print row, col
             # insert a gap in the random position
@@ -336,14 +334,14 @@ class Mutate():
             # it that gaps are inserted at the start of the sequence
 
             start_or_end = randint(1,10)
-            if start_or_end < self.smart_dir_prob:
+            if start_or_end <= self.smart_dir_prob:
                 #add the gaps at the start
                 start = True
             else:
                 #add the gaps at the end
                 start = False
 
-            for i, line in enumerate(new_alignment):
+            for i, line in enumerate(self.alignment):
                 # do not add a gap at the start of the row we added already
                 if i == row: continue
                 if start == True:
@@ -351,17 +349,16 @@ class Mutate():
                 else:
                     self.__insert_gap(i, self.seq_length)
             # test to see if the new alignment is better
-            new_score = Scoring.Scoring(new_alignment, self.seq_length+1)
+            new_score = Scoring.Scoring(self.alignment, self.seq_length+1)
             new_score_of_pairs = new_score.sum_of_pairs()
             new_identity = new_score.identity()
             #print "start",  start_score_of_pairs, start_identity
             #print "now",  new_score_of_pairs, new_identity
-            if new_score_of_pairs > start_score_of_pairs \
-                    and start_identity > new_identity:
+            if __better_alignment(old_alignment):
                 # one of the scores is better use the new alignment
                 # maybe adjust this to make suer the other is not too much worst
                 print "Found Better"
-                return new_alignment
+                return self.alignment
             if start:
                 # last time we placed gaps at the start 
                 # we have droped that so subtract 1 from smart_dir_prob
@@ -370,11 +367,79 @@ class Mutate():
             else:
                 self.smart_dir_prob +=1
         #print "Keeping alignment"
-        return self.alignment
+        return old_alignment
         
-    def smart_gap_shift(self):
-        pass
-    def smart_gap_merge(self):
-        pass
-    def gap_col_remover(self):
+    def smart_gap_shift(self, attempts = 3):
+        """
+           choose a gap at random and move it in a random direction 
+        """
+
+        # make a copy of the strating aligment
+        old_alignment = self.alignment.copy()
+        # choose a row at random
+        row = randint(0,len(self.alignment)-1)
+
+        # count the gaps on the row
+        num_of_gaps = 0
+        for value in self.alignment[row]:
+            if value == '-':
+                num_of_gaps += 1
+        # randomly choose one of the gaps
+        gap_to_move = randint(0,num_of_gaps)
+        # get the index of the gap to be moved
+        gap_index = self.__find_gap_index(row, gap_to_move)
+        
+        #close the gap
+        self.__close_gap(row, [gap_index])
+        
+        # insert a gap to the left or right
+        # check if the alignment is better 
+        # try this attempts number of times
+        for trys in range(attempts):
+            # choose a direction using smart_dir_prob
+            left_or_right = randint(1,10)
+            if left_or_right <= self.smart_dir_prob:
+                #add the gaps at the start
+                left = True
+            else:
+                #add the gaps at the end
+                left = False
+
+            if left:
+                # insert gaps to the left of gap_index
+                # add the extra 1 because trys starts at 0
+                new_gap_index = gap_index - trys - 1 
+                self.__insert_gap(row, new_gap_index)
+            else:
+                # insert a gap to the right
+                new_gap_index = gap_index + trys + 1
+                self.__insert_gap(row, new_gap_index)
+            # check if the new alignment is better if so keep it
+            # if not close the gap and try another to the left or right
+            if self.__better_alignment(old_alignment):
+                return self.alignment
+            else:
+                #  adjest probility of moving left or right
+                if left:
+                    self.smart_dir_prob -= 1
+                else:
+                    self.smart_dir_prob += 1
+                # 
+                self.alignment = old_alignment.copy()
+        return old_alignment
+            
+    def smart_gap_merge(self, attempts = 3):
+        """
+           call gap_merge but only keep the alignment if it improves
+        """
+        old_alignment = self.alignment.copy()
+        
+        for trys in range(attempts):
+            self.gap_merge()
+            if __better_alignment(old_alignment):
+                return self.alignment
+            else:
+                self.alignment = old_alignment.copy()
+        return old_alignment        
+    def __better_alignment(self, test_alignment):
         pass

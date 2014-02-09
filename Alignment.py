@@ -24,7 +24,7 @@ class Alignment():
             mutation object
         """
         mu = Mutate.Mutate(self.np_alignment, self.length)
-        self.np_alinment = mu.smart_gap_insertion()
+        self.np_alinment = mu.smart_gap_shift()
         #print self.fittness()
 
     def remove_gap_col(self):
