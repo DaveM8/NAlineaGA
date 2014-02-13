@@ -442,4 +442,8 @@ class Mutate():
                 self.alignment = old_alignment.copy()
         return old_alignment        
     def __better_alignment(self, test_alignment):
+        """
+           dicied if an alignment is better or not 
+           return True it is or False if not 
+        """
         pass
