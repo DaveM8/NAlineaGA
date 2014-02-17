@@ -7,13 +7,39 @@ class Crossover():
         produce two child alignmets
     """
     def __init__(self, alignment1, alignment2):
-        self.parent1 = alignment1
-        self.parent2 = alignment2
-    def _chooseCrossover(self):
+        self.p1 = alignment1
+        self.p2 = alignment2
+    def __chooseCrossover(self):
         """
            Choose at random which crossover to preform
         """
-        
+    def vertical(self):
+        """
+           Do a vertical crossover between the two parent alignments
+           
+           Return Two Alignments
+           Not sure if both will be valad alignments
+          
+        """
+        pass
+    def horizontal(self):
+        """
+           do a horizontal crossover between the two parents
+           Return 2 alignments
+        """
+        # find out the number of rows
+        num_rows = len(self.p1)
+        # choose a crossover point
+        # use 1 and num_rows-1 so the crossover point in inbetween two rows
+        cross_point = randint(1,num_rows-1)
+        # replace all the lines after the crossover point with lines from p2
+        for i, line in enumerate(p1):
+            if i >= cross_point:
+                self.p1[i] = self.p2[i]
+            else:
+                # replace the lines from p2 with lines from p1
+                self.p2[i] = self.p1[i]
+
 class Vertical(Crossover):
     def __init__(self, parent1, parent2):
         self.p1 = parent1
@@ -34,6 +60,7 @@ class Horizontal(Crossover):
            And the bottom of perent2 with the top of parent1
         """
         pass
+
 class MatchedCol(Crossover):
     def __init__(self, parent1, parent2):
         self.p1 = parent1

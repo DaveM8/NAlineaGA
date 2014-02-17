@@ -1,6 +1,7 @@
 import numpy as np
 import Alignment
 import Mutate
+import Crossover
 
 class GA():
     def __init__(self,path_to_data, pop_size=20, num_generations=1000):
@@ -107,9 +108,11 @@ class GA():
         return np_seq, seq_name, seq_length
     def test(self):
        my_alig =  Alignment.Alignment(self.np_seq, self.seq_names, self.seq_length)
+       test_aline = Alignment.Alignment(self.np_seq, self.seq_names, self.Seq_length)
        #score = my_alig.identity()
        #print score
-       my_alig.mutation()
+       test_aline.mutation()
+       my_crossover = Crossover(my_alig, test_aline)
 
         
 my_ga = GA("1aho.rsf")
