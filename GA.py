@@ -4,7 +4,7 @@ import Mutate
 import Crossover
 
 class GA():
-    def __init__(self,path_to_data, pop_size=20, num_generations=1000):
+    def __init__(self,path_to_data, pop_size=2, num_generations=1000):
         """ class that creates the the pouplation of alignments
             and keeps track of the number of generations
         """
@@ -12,6 +12,7 @@ class GA():
         self.pop_size = pop_size
         self.num_generations = num_generations
         self.data_file = path_to_data
+        self.run()
         self.np_seq, self.seq_names, self.seq_length = self.read_data()
     def tournament(self):
         """ Run the tourment at the end of each generation always keeping
@@ -111,6 +112,7 @@ class GA():
        test_aline = Alignment.Alignment(self.np_seq, self.seq_names, self.Seq_length)
        #score = my_alig.identity()
        #print score
+       self.print_seq()
        test_aline.mutation()
        my_crossover = Crossover(my_alig, test_aline)
 

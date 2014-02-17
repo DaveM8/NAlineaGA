@@ -7,6 +7,8 @@ from random import randint
 class Mutate():
     """
         Provide matation operators
+        Wang and Li(2004)[9] insert full coulmns of gaps tobreak away from local optimal soultions
+        Maybe I could add that an a mutagen its easy and may improve the alogrithim
     """
     def __init__(self, alignment,seq_length,  num_gaps = 1,
                        smart_retry = 3, smart_dir_prob = 5):
