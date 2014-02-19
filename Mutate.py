@@ -315,6 +315,7 @@ class Mutate():
            alignment is improved on one of sum-of-pairs or
            identity
         """
+        #TODO Could I get an oveflow if I go Over The edge with a gap
         # make a copy of the alignment to work on
         old_alignment = self.alignment.copy()
 
