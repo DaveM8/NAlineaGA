@@ -10,6 +10,23 @@ class Alignment():
         self.np_alignment = np_alignment
         self.names = names
         self.length = length
+
+    def print_seq(self):
+        """
+            print out the sequences as nice strings
+        """
+        for i, line in enumerate(self.np_alignment):
+            #print the name of the sequence and the values of the sequence
+            # join all the values from the numpy array into a string
+            my_str = ''.join(line)
+            new_str = ''
+            # print the alignment with a space every 10 chars to improve readibilaty
+            for j, char in enumerate(my_str):
+                new_str += char 
+                if j % 10 == 0 and j != 0:
+                    new_str += ' '
+            print self.names[i] , new_str
+
     def fittness(self):
         """Calulate the fittness of an Alignment
            Return a tupel containing (sum-of-pairs, index)
@@ -23,9 +40,7 @@ class Alignment():
             on the aligment. by pasing the data to a
             mutation object
         """
-        mu = Mutate.Mutate(self.np_alignment, self.length)
-        self.np_alinment = mu.gap_merge()
-        #print self.fittness()
+        mu = Mutate.Mutate(self)
 
     def remove_gap_col(self):
         """

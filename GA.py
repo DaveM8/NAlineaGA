@@ -12,14 +12,31 @@ class GA():
         self.pop_size = pop_size
         self.num_generations = num_generations
         self.data_file = path_to_data
-        self.run()
-        self.np_seq, self.seq_names, self.seq_length = self.read_data()
+        self.population = []
+        #self.run()
+        self.create_population()
+        
     def tournament(self):
         """ Run the tourment at the end of each generation always keeping
             the top 40% of the pouplation and selecting the best of
             the remaining 60%
         """
         pass
+    def create_population(self):
+        """
+           Create the pouplation 
+           Read the files 
+           Create a list containing Alignment objects 
+        """
+        
+        for i in range (self.pop_size):
+            # read the sequence from file
+            np_seq, seq_names, seq_length = self.read_data()
+            # create an Alignment object with the data
+            my_alig =  Alignment.Alignment(np_seq, seq_names, seq_length)
+            # append the alignment object to the pouplation list
+            self.population.append(my_alig)
+        
     def run(self):
         """ Run the GA 
             Read the data file
@@ -32,19 +49,6 @@ class GA():
         for i in range(self.pop_size):
             a = Alignment.Alignment(self.np_seq, self.seq_names)
             self.population.append(a)
-    def print_seq(self):
-        """
-            print out the sequences as nice strings
-        """
-        for i, line in enumerate(self.np_seq):
-            #print the name of the sequence and the values of the sequence
-            my_str = ''.join(line)
-            new_str = ''
-            for j, char in enumerate(my_str):
-                new_str += char
-                if j % 10 == 0 and j != 0:
-                    new_str += ' '
-            print self.seq_names[i] , new_str
 
 
     def read_data(self):
@@ -107,18 +111,29 @@ class GA():
                 if my_char == '1':
                     np_seq[i][j] = '-'
         return np_seq, seq_name, seq_length
-    def test(self):
-       my_alig =  Alignment.Alignment(self.np_seq, self.seq_names, self.seq_length)
-       test_aline = Alignment.Alignment(self.np_seq, self.seq_names, self.Seq_length)
-       #score = my_alig.identity()
-       #print score
-       self.print_seq()
-       test_aline.mutation()
-       my_crossover = Crossover(my_alig, test_aline)
 
+    def test(self):
+       alig_1 = self.population[0]
+       alig_2 = self.population[1]
+       alig_2.print_seq()
+       print
+       for value in range(100):
+           alig_2.mutation()
+       print "alig_2"
+       alig_2.print_seq()
+       print "alig_1"
+       alig_1.print_seq()
+       my_crossover = Crossover.Crossover(alig_1, alig_2)
+       (child_alig1, child_alig2) = my_crossover.horizontal()
+       print "\nalig_1"
+       alig_1.print_seq()
+       print "\nchild_alig1"
+       child_alig1.print_seq()
+       print "\nalig_2"
+       alig_2.print_seq()
+       print "\nchild_alig2"
+       child_alig2.print_seq()
         
 my_ga = GA("1aho.rsf")
-my_ga.print_seq()
 my_ga.test()
-print
-my_ga.print_seq()
+

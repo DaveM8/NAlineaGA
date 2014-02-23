@@ -7,24 +7,24 @@ from random import randint
 class Mutate():
     """
         Provide matation operators
-        Wang and Li(2004)[9] insert full coulmns of gaps tobreak away from local optimal soultions
+        Wang and Li(2004)[9] insert full coulmns of gaps to break away from local optimal soultions
         Maybe I could add that an a mutagen its easy and may improve the alogrithim
     """
-    def __init__(self, alignment,seq_length,  num_gaps = 1,
+    def __init__(self, alignment,  num_gaps = 1,
                        smart_retry = 3, smart_dir_prob = 5):
-        self.alignment = alignment     # an np array holding the alignment
+        self.alignment = alignment.np_alignment     # an np array holding the alignment
         self.num_gaps = num_gaps       # the number of gaps to insert in gap_insertion()
         self.smart_retry = smart_retry # number of retrys used in smart operators
-        self.seq_length = seq_length
+        self.seq_length = alignment.length
         self.smart_dir_prob = smart_dir_prob
-        #self.choose_oper()
+        self.choose_oper()
     
     def __insert_gap(self, row, col):
         """
            take care of inserting a gap in an alignment
            at position row, col
         """
-        print "Inserting gap at", row, col
+        #print "Inserting gap at", row, col
         # make a copy of the rest of the row droping the last '-'
         rest_of_col = self.alignment[row][col:-1].copy()
         #insert a gap '-'
@@ -47,7 +47,7 @@ class Mutate():
         # remove "lefter" gaps
         cols.reverse()
         for col in cols:
-            print "Removing gap at", row, col
+            #print "Removing gap at", row, col
             # copy all the data after the gap
             row_after_gap = self.alignment[row][col+1:].copy()
             #place that data in the row starting where the gap was
@@ -55,12 +55,14 @@ class Mutate():
             #insert the gap at the end of the row
             self.alignment[row][-1] = '-'
 
-    def chooseOper(self):
+    def choose_oper(self):
         """
             randomly choose which if any operator is used on the alignment 
         """
+        
         # First try a even odd for the mutation
-        rand_num = randint(1,7)
+        rand_num = randint(1,3)
+        print "rand_num" , rand_num
         if rand_num == 1:
             self.gap_insertion()
         elif rand_num == 2:
