@@ -1,5 +1,6 @@
 from random import randint
 import copy
+import Alignment
 
 class Crossover():
     """ class to carry out crossover on an alignment
@@ -14,8 +15,8 @@ class Crossover():
         self.p1 = copy.copy(alignment1)
         self.p2 = copy.copy(alignment2)
         #make copys of the original seqences
-        self.p1_alignment = alignment1.np_alignment.copy()
-        self.p2_alignment = alignment2.np_alignment.copy()
+        self.p1_alignment = self.p1.np_alignment.copy()
+        self.p2_alignment = self.p2.np_alignment.copy()
 
     def __chooseCrossover(self):
         """
@@ -29,15 +30,16 @@ class Crossover():
           
         """
         # select a row at random
-        split_col = randint(0, len(p1_alignment[0]))
+        split_col = randint(0, len(self.p1_alignment[0]))
         child_1 = self.p1_alignment.copy()
+
         # split the alignment at split_col
         # make a copy of the left side of the alignments
         left_child_1 = self.p1_alignment[:,:split_col].copy()
         #left_child_2 = self.p2_alignment[:,:split_col]
         
-        # now I count the number of protines not including 
-        # the gaps of each row on left_child_1 
+        # count the number of protines on the left of p1  
+        print "split_col", split_col
         left_seq = []
         for line in left_child_1:
             line_num = 0
@@ -45,11 +47,16 @@ class Crossover():
                 if value != '-':
                     line_num += 1
             left_seq.append(line_num)
-        # now I go into alignment 2 
-        # count the the correct number of protines
-        # save the rest which will be right_child_1
+        
+        # count the same number of protines in p2 
+        # save the index that index gives a valad
+        # sequence to put with child_1
         right_child_index = []
-        for i, line in enumerate(p2_alignment):
+        #print left_seq
+        #print "length p2_alignment",len(self.p2_alignment)
+        
+        for i, line in enumerate(self.p2_alignment):
+            #print "first i", i
             line_count = 0
             for j, value in enumerate(line):
                 if value != '-':
@@ -57,14 +64,17 @@ class Crossover():
                     if line_count == left_seq[i]:
                         # save the index it's the start of right_child
                         right_child_index.append(j)
-                    line_count += 1
+        #print "length right_child_index", len(right_child_index)            
         # now I've got the Index of the sequences which to create the
         # the right_seq
-        for i in range(len(p1_alignmnet)):
-            child_1[i,right_child_index[i]:] = /
-                p2_alignment[i,right_child_index[i]].copy()
-        self.p1.np_alignmnet = child_1.copy()
-        return self.p1
+        for i in range(len(self.p1_alignment)):
+            p1_new_right= self.p2_alignment[i,right_child_index[i]:].copy()
+            child_1[i,right_child_index[i]:] = p1_new_right
+
+        # create a new alignment to return
+        child_alignment = Alignment.Alignment(child_1, self.p1.names, self.p1.length)
+        return child_alignment
+
     def horizontal(self):
         """
            Select a line at random and put the top of parent1 with the bottom of parent2
@@ -91,7 +101,7 @@ class Crossover():
         """
            
         """
-                p1_num_col = 0
+        p1_num_col = 0
         p2_num_col = 0
         p1_indexs = []
         p2_indexs = []

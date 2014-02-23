@@ -115,24 +115,19 @@ class GA():
     def test(self):
        alig_1 = self.population[0]
        alig_2 = self.population[1]
-       alig_2.print_seq()
+       alig_1.print_seq()
        print
-       for value in range(100):
+       alig_2.print_seq()
+       for value in range(10):
            alig_2.mutation()
        print "alig_2"
        alig_2.print_seq()
-       print "alig_1"
-       alig_1.print_seq()
-       my_crossover = Crossover.Crossover(alig_1, alig_2)
-       (child_alig1, child_alig2) = my_crossover.horizontal()
        print "\nalig_1"
        alig_1.print_seq()
-       print "\nchild_alig1"
+       my_crossover = Crossover.Crossover(alig_1, alig_2)
+       child_alig1 = my_crossover.vertical()
+       print "child_alig1"
        child_alig1.print_seq()
-       print "\nalig_2"
-       alig_2.print_seq()
-       print "\nchild_alig2"
-       child_alig2.print_seq()
         
 my_ga = GA("1aho.rsf")
 my_ga.test()
