@@ -41,6 +41,7 @@ class Alignment():
             mutation object
         """
         mu = Mutate.Mutate(self)
+        mu.gap_merge()
 
     def remove_gap_col(self):
         """

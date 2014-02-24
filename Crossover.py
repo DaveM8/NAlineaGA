@@ -27,19 +27,30 @@ class Crossover():
            Do a vertical crossover between the two parent alignments
            
            Return Two Alignments
+           
+           Choose a position at random and create two child alignments by
+           putting the left side of p1 with the right side of p2
+           Because the order of the alignments must remain the same
+           I count the number of letters not including the gaps on
+           the left side of one of the parents, then to get the
+           index to cut the other parent at count the same number
+           of letters again not including gaps this gives the correct
+           index to cut and create the correct child alignments
+           with the correct sequences.
           
         """
         # select a row at random
         split_col = randint(0, len(self.p1_alignment[0]))
+        # create the arrays to store the new alignments
         child_1 = self.p1_alignment.copy()
+        child_2 = self.p2_alignment.copy()
 
         # split the alignment at split_col
         # make a copy of the left side of the alignments
         left_child_1 = self.p1_alignment[:,:split_col].copy()
-        #left_child_2 = self.p2_alignment[:,:split_col]
         
-        # count the number of protines on the left of p1  
-        print "split_col", split_col
+        # count the number of letters on the left of p1
+        # not including gaps
         left_seq = []
         for line in left_child_1:
             line_num = 0
@@ -47,33 +58,34 @@ class Crossover():
                 if value != '-':
                     line_num += 1
             left_seq.append(line_num)
-        
+
         # count the same number of protines in p2 
         # save the index that index gives a valad
-        # sequence to put with child_1
+        # sequence to put with the child alignments
         right_child_index = []
-        #print left_seq
-        #print "length p2_alignment",len(self.p2_alignment)
         
         for i, line in enumerate(self.p2_alignment):
-            #print "first i", i
             line_count = 0
             for j, value in enumerate(line):
                 if value != '-':
                     line_count += 1
                     if line_count == left_seq[i]:
                         # save the index it's the start of right_child
-                        right_child_index.append(j)
-        #print "length right_child_index", len(right_child_index)            
-        # now I've got the Index of the sequences which to create the
-        # the right_seq
+                        right_child_index.append(j+1)    # +1 because of the way numpy indexes
+        
+        # use the correct indexs to create the two child alignments
         for i in range(len(self.p1_alignment)):
+            #copy the right handside of p2 over the right handside of p1
             p1_new_right= self.p2_alignment[i,right_child_index[i]:].copy()
             child_1[i,right_child_index[i]:] = p1_new_right
+            
+            p2_new_right = self.p1_alignment[i,right_child_index[i]:].copy()
+            child_2[i, right_child_index[i]:] = p2_new_right
 
         # create a new alignment to return
-        child_alignment = Alignment.Alignment(child_1, self.p1.names, self.p1.length)
-        return child_alignment
+        child_alignment_1 = Alignment.Alignment(child_1, self.p1.names, self.p1.length)
+        child_alignment_2 = Alignment.Alignment(child_2, self.p2.names, self.p2.length)
+        return (child_alignment_1, child_alignment_2)
 
     def horizontal(self):
         """

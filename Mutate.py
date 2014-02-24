@@ -12,19 +12,19 @@ class Mutate():
     """
     def __init__(self, alignment,  num_gaps = 1,
                        smart_retry = 3, smart_dir_prob = 5):
-        self.alignment = alignment.np_alignment     # an np array holding the alignment
+        self.alignment = alignment.np_alignment     # an alignment object
         self.num_gaps = num_gaps       # the number of gaps to insert in gap_insertion()
         self.smart_retry = smart_retry # number of retrys used in smart operators
         self.seq_length = alignment.length
         self.smart_dir_prob = smart_dir_prob
-        self.choose_oper()
+        #self.choose_oper()
     
     def __insert_gap(self, row, col):
         """
            take care of inserting a gap in an alignment
            at position row, col
         """
-        #print "Inserting gap at", row, col
+        print "Inserting gap at", row, col
         # make a copy of the rest of the row droping the last '-'
         rest_of_col = self.alignment[row][col:-1].copy()
         #insert a gap '-'
@@ -47,7 +47,7 @@ class Mutate():
         # remove "lefter" gaps
         cols.reverse()
         for col in cols:
-            #print "Removing gap at", row, col
+            print "Removing gap at", row, col
             # copy all the data after the gap
             row_after_gap = self.alignment[row][col+1:].copy()
             #place that data in the row starting where the gap was
@@ -137,7 +137,7 @@ class Mutate():
             self.__insert_gap(row, new_gap)
         return self.alignment
 
-    def gap_merge(self, all_lines = True):
+    def gap_merge(self, all_lines = False):
         """
            Select 2 or 3 consective  gaps at random and merge
            them into one consective gap. then move them to a random position
