@@ -8,7 +8,9 @@ class Scoring():
         self.seq_length = seq_length
         self.score_of_pairs = 0
         self.score_identity = 0
-        scoring_matrix = self.__read_matrix('PAM350.csv')
+        if scoring_matrix == {}:
+            # only create the global varibal scoring_matrix once
+            scoring_matrix = self.__read_matrix('PAM350.csv')
     
     def sum_of_pairs(self):
         """
@@ -65,13 +67,14 @@ class Scoring():
         """
            How many columnes are lined up correctoly
         """
-        col_size = len(self.np_alignment[0])
+        
         # check every coloum of the array
-        for i in range(len(self.np_alignment)):
+        for i in range(len(self.np_alignment[0])):
             #select a coloum
             col = self.np_alignment[:,i]
+            # make a set of the column
             col_set = set(col)
-            if len(col_set) == 1:
-                # there is only one value in the set the column is equal
+            if len(col_set) == 1 and col[0] != '-': # do not count cols of gaps
+                # there is only one value in the set the column is aligned
                 self.score_identity += 1
         return self.score_identity

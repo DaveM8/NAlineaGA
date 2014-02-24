@@ -26,7 +26,7 @@ class Crossover():
         """
            Do a vertical crossover between the two parent alignments
            
-           Return Two Alignments
+           Return Two child Alignments
            
            Choose a position at random and create two child alignments by
            putting the left side of p1 with the right side of p2
@@ -91,7 +91,7 @@ class Crossover():
         """
            Select a line at random and put the top of parent1 with the bottom of parent2
            And the bottom of perent2 with the top of parent1
-           Return 2 alignments
+           Return 2 child alignments
         """
         # find out the number of rows
         num_rows = len(self.p1_alignment)
@@ -109,9 +109,13 @@ class Crossover():
         self.p1.np_alignment = p1_child.copy()
         self.p2.np_alignment = p2_child.copy()
         return (self.p1, self.p2) 
-    def matchenCol(self):
+    def matched_col(self):
         """
-           
+           choose a fully aligned column from from one of the parents
+           which is not fully aligned in the other and add or remove
+           gaps until it is fully aligned
+
+           Return one child alignment
         """
         p1_num_col = 0
         p2_num_col = 0
@@ -119,10 +123,10 @@ class Crossover():
         p2_indexs = []
         # select the fully allinged columns
         # go throught both at the same time take note if one is
-        # compleate and the other is not
-        for i in range(len(self.p1_alignment)):
-            p1_col = self.p1_alignment[:i]
-            p2_col = self.p2_alignment[:i]
+        # complete and the other is not
+        for i in range(len(self.p1_alignment[0])):
+            p1_col = self.p1_alignment[:,i]
+            p2_col = self.p2_alignment[:,i]
 
             p1_set = set(p1_col)
             p2_set = set(p2_col)
@@ -133,13 +137,40 @@ class Crossover():
             elif len(p1_set) == 1:
                 # p1 is aligned
                 # dont count columns of gaps
-                if p1_set[0] != '-':
+                if p1_col[0] != '-':
                     p1_num_col += 1
                     p1_indexs.append(i)
             elif len(p2_set) == 1:
                 # p2 is aligned
                 # dont count cloumns of gaps
-                if p2_set[0] != '-':
+                if p2_col[0] != '-':
                     p2_num_col += 1
                     p2_indexs.append(i)
-        # so now I know how many and which columns are filled
+
+        #aligne a col in the parent with the lower identity socre
+        # use the same trick of counting maybe
+        if p1_num_col == p2_num_col:
+            #same identity score choose on at random
+            if p1_num_col == 0:
+                # they have all the same aligned cols
+                return None 
+            which_one = randint(1,2)
+            if which_one = 1:
+                p1_num_col += 1
+            elif which_one = 2:
+                p2_num_col +=1
+        if p1_num_col < p2_num_col:
+            # line up a col in p1
+            which_col = randint(0, p2_num_col)
+            self.__match_the_col(self.p1, self.p2, which_col)
+        elif p2_num_col < p1_num_col:
+            #line up a col in p2
+            which_col = randint(0, p1_num_col)
+            self.__match_the_col(self.p2, self.p1, which_col)
+        else:
+            #should never get here
+            print "Error"
+    def __match_the_col(self, match, parent, which_col):
+        """
+           Do the work of matching a colume in an alignment
+        """

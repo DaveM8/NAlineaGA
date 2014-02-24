@@ -2,6 +2,7 @@ import numpy as np
 import Alignment
 import Mutate
 from Crossover import Crossover
+from Scoring import Scoring
 
 class GA():
     def __init__(self,path_to_data, pop_size=2, num_generations=1000):
@@ -114,19 +115,13 @@ class GA():
 
     def test(self):
        alig_1 = self.population[0]
-       alig_2 = self.population[1]
-       for value in range(10):
-           alig_2.mutation()
-       print "alig_1"
        alig_1.print_seq()
-       print "\nalig_2"
-       alig_2.print_seq()
-       my_crossover = Crossover(alig_1, alig_2)
-       child_1, child_2 = my_crossover.vertical()
-       print "child 1"
-       child_1.print_seq()
-       print "child 2"
-       child_2.print_seq()
+       my_scorer = Scoring(alig_1.np_alignment, alig_1.length)
+       score_of_pairs = my_scorer.sum_of_pairs()
+       print score_of_pairs
+       
+       
+       
 my_ga = GA("1aho.rsf")
 my_ga.test()
 
