@@ -116,8 +116,9 @@ class GA():
     def test(self):
        alig_1 = self.population[0]
        alig_2 = self.population[1]
-       for value in range(2):
+       for value in range(10):
            alig_2.mutation()
+       
        print "alig_1"
        alig_1.print_seq()
        print "alig_2"
@@ -136,4 +137,3 @@ class GA():
        
 my_ga = GA("1aho.rsf")
 my_ga.test()
-

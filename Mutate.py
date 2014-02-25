@@ -1,7 +1,6 @@
 import numpy as np
-import Scoring
+from Scoring import Scoring
 from random import randint
-
 
 # A class to carry out mutations on the alignment
 class Mutate():
@@ -12,7 +11,8 @@ class Mutate():
     """
     def __init__(self, alignment,  num_gaps = 1,
                        smart_retry = 3, smart_dir_prob = 5):
-        self.alignment = alignment.np_alignment     # an alignment object
+        self.alignment_object = alignment           # the alignment object to be mutated
+        self.alignment = alignment.np_alignment     # the alignment to be mutated
         self.num_gaps = num_gaps       # the number of gaps to insert in gap_insertion()
         self.smart_retry = smart_retry # number of retrys used in smart operators
         self.seq_length = alignment.length
@@ -88,7 +88,7 @@ class Mutate():
             for j in range(num_gaps):
                 position = randint(0,self.seq_length)
                 self.__insert_gap(i, position)
-        return self.alignment
+        #return self.alignment
 
     def gap_shift(self, all_lines = False):
         """
@@ -135,7 +135,7 @@ class Mutate():
             #choose a random position and insert a gap
             new_gap = randint(0, self.seq_length-1)
             self.__insert_gap(row, new_gap)
-        return self.alignment
+        #return self.alignment
 
     def gap_merge(self, all_lines = False):
         """
@@ -286,7 +286,7 @@ class Mutate():
                     self.__insert_gap(row, other_new_gap)
                     self.__insert_gap(row, other_new_gap+1)
                     
-        return self.alignment
+        #return self.alignment
 
 
     def __find_gap_index(self, row, gap_num):
@@ -318,6 +318,7 @@ class Mutate():
            identity
         """
         #TODO Could I get an oveflow if I go Over The edge with a gap
+
         # make a copy of the alignment to work on
         old_alignment = self.alignment.copy()
 
@@ -363,7 +364,9 @@ class Mutate():
                 # one of the scores is better use the new alignment
                 # maybe adjust this to make suer the other is not too much worst
                 print "Found Better"
-                return self.alignment
+                # I'm not returning an alignment I am working on it internally
+                # if I'm keeping the new alignment do nothing
+                #return self.alignment
             if start:
                 # last time we placed gaps at the start 
                 # we have droped that so subtract 1 from smart_dir_prob
@@ -372,7 +375,9 @@ class Mutate():
             else:
                 self.smart_dir_prob +=1
         #print "Keeping alignment"
-        return old_alignment
+        #return old_alignment
+        # do not return any value set the self.alignment to old_alignment
+        self.alignment = old_alignment
         
     def smart_gap_shift(self, attempts = 3):
         """
@@ -431,7 +436,8 @@ class Mutate():
                     self.smart_dir_prob += 1
                 # 
                 self.alignment = old_alignment.copy()
-        return old_alignment
+        #return old_alignment
+        self.alignment = old_alignment
             
     def smart_gap_merge(self, attempts = 3):
         """
@@ -445,10 +451,30 @@ class Mutate():
                 return self.alignment
             else:
                 self.alignment = old_alignment.copy()
-        return old_alignment        
+        #return old_alignment        
+        # return to the original alignment
+        self.alignment = old_alignment
     def __better_alignment(self, test_alignment):
         """
-           dicied if an alignment is better or not 
-           return True it is or False if not 
+           evaluate if an alignment is better that another
+           in one of sum of pairs or identity and better
+           or the same in the other
+
+           return True test_alignment is better than self.alignment
+                  False self.alignment is better
         """
-        pass
+        
+        test_score = Scoring(test_alignment, self.length)
+        self_score = Scoring(self.alignment, self.length)
+
+        test_identity = test_score.identity()
+        test_sum_of_pairs = test_score.identity()
+
+        self_score = self_identity = self_score.identity()
+        self_sum_of_pairs = self_score.sum_of_pairs()
+        
+        if self_identity > test_identity and self_sum_of_pairs >= test_sum_of_pairs:
+            return True
+        if self_sum_of_pairs > test_sum_of_pairs and self_identity >= test_identity:
+            return True
+        return False

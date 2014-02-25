@@ -155,6 +155,7 @@ class Crossover():
                 # they have all the same aligned cols
                 return None 
             which_one = randint(1,2)
+            # add one to p1 or p2 at random so it has a greater identity
             if which_one == 1:
                 p1_num_col += 1
             elif which_one == 2:
@@ -182,17 +183,16 @@ class Crossover():
         # not including gaps up until which_col +1
         left_child = p2.np_alignment[:,:which_col+1].copy()
         
-        #
+        # first count the correct number of letters to the fully aligned col in p2
         letter_num = []
         for line in left_child:
             letter_count = 0
             for j, value in enumerate(line):
                 if value != '-':
                     letter_count += 1
-            letter_num.append(letter_count)    #the +1 is to get the correct index in numpy
-        # now I have the number of the letter on each line
-        # of which I want to aligne
-        # Now get the indexs of that letter in each line
+            letter_num.append(letter_count)
+
+        # next find the index of that letter in p1
         index = []
         for i, line in enumerate(p1.np_alignment):
             letter_count = 0
@@ -203,9 +203,7 @@ class Crossover():
                         index.append(j)
                         break
 
-        # Now I've got the indexs of all the letters I want to line up
-        # find the largest index and add gaps until they are all that index
-        
+        # find which line the letter has the highest index
         largest_index_value = 0
         largest_index_line = 0
        
@@ -214,11 +212,13 @@ class Crossover():
                 largest_index_value = value
                 largest_index_line = i
 
+        # move all the other lines to that index 
         for line_num, line in enumerate(p1.np_alignment):
             if line_num != largest_index_line:
                 num_gaps = largest_index_value - index[line_num]
                 for j in range(num_gaps):
                     self.__insert_gap(p1, line_num, index[line_num]+j)
+        #return the alignment with the extra aligned column
         return p1
 
 
@@ -234,5 +234,3 @@ class Crossover():
         alignment.np_alignment[row][col] = '-'
         # put the rest of the row back after the gap '-'
         alignment.np_alignment[row][col+1:] = rest_of_col
-
-            
