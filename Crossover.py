@@ -49,15 +49,16 @@ class Crossover():
         # make a copy of the left side of the alignments
         left_child_1 = self.p1_alignment[:,:split_col].copy()
         
+        
         # count the number of letters on the left of p1
         # not including gaps
         left_seq = []
         for line in left_child_1:
-            line_num = 0
+            letter_num = 0
             for value in line:
                 if value != '-':
-                    line_num += 1
-            left_seq.append(line_num)
+                    letter_num += 1
+            left_seq.append(letter_num)
 
         # count the same number of protines in p2 
         # save the index that index gives a valad
@@ -147,30 +148,91 @@ class Crossover():
                     p2_num_col += 1
                     p2_indexs.append(i)
 
-        #aligne a col in the parent with the lower identity socre
-        # use the same trick of counting maybe
+        #aline a col in the parent with the lower identity socre
         if p1_num_col == p2_num_col:
-            #same identity score choose on at random
+            #same identity score choose one at random
             if p1_num_col == 0:
                 # they have all the same aligned cols
                 return None 
             which_one = randint(1,2)
-            if which_one = 1:
+            if which_one == 1:
                 p1_num_col += 1
-            elif which_one = 2:
+            elif which_one == 2:
                 p2_num_col +=1
         if p1_num_col < p2_num_col:
+            print "line up in alignment 1"
             # line up a col in p1
             which_col = randint(0, p2_num_col)
-            self.__match_the_col(self.p1, self.p2, which_col)
+            child = self.__match_the_col(self.p1, self.p2, p2_indexs[which_col])
         elif p2_num_col < p1_num_col:
+            print "line up in alignment 2"
             #line up a col in p2
             which_col = randint(0, p1_num_col)
-            self.__match_the_col(self.p2, self.p1, which_col)
+            child = self.__match_the_col(self.p2, self.p1, p1_indexs[which_col])
         else:
             #should never get here
             print "Error"
-    def __match_the_col(self, match, parent, which_col):
+        return child
+
+    def __match_the_col(self, p1, p2, which_col):
         """
            Do the work of matching a colume in an alignment
         """
+        # count the number of letters on each line
+        # not including gaps up until which_col +1
+        left_child = p2.np_alignment[:,:which_col+1].copy()
+        
+        #
+        letter_num = []
+        for line in left_child:
+            letter_count = 0
+            for j, value in enumerate(line):
+                if value != '-':
+                    letter_count += 1
+            letter_num.append(letter_count)    #the +1 is to get the correct index in numpy
+        # now I have the number of the letter on each line
+        # of which I want to aligne
+        # Now get the indexs of that letter in each line
+        index = []
+        for i, line in enumerate(p1.np_alignment):
+            letter_count = 0
+            for j, value in enumerate(line):
+                if value != '-':
+                    letter_count += 1
+                    if letter_count == letter_num[i]:
+                        index.append(j)
+                        break
+
+        # Now I've got the indexs of all the letters I want to line up
+        # find the largest index and add gaps until they are all that index
+        
+        largest_index_value = 0
+        largest_index_line = 0
+       
+        for i, value in enumerate(index):
+            if value > largest_index_value:
+                largest_index_value = value
+                largest_index_line = i
+
+        for line_num, line in enumerate(p1.np_alignment):
+            if line_num != largest_index_line:
+                num_gaps = largest_index_value - index[line_num]
+                for j in range(num_gaps):
+                    self.__insert_gap(p1, line_num, index[line_num]+j)
+        return p1
+
+
+    def __insert_gap(self, alignment, row, col):
+        """
+           take care of inserting a gap in an alignment
+           at position row, col
+        """
+        #print "Inserting gap at", row, col
+        # make a copy of the rest of the row droping the last '-'
+        rest_of_col = alignment.np_alignment[row][col:-1].copy()
+        #insert a gap '-'
+        alignment.np_alignment[row][col] = '-'
+        # put the rest of the row back after the gap '-'
+        alignment.np_alignment[row][col+1:] = rest_of_col
+
+            

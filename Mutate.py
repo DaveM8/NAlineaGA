@@ -62,7 +62,7 @@ class Mutate():
         
         # First try a even odd for the mutation
         rand_num = randint(1,3)
-        print "rand_num" , rand_num
+        
         if rand_num == 1:
             self.gap_insertion()
         elif rand_num == 2:

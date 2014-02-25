@@ -115,10 +115,22 @@ class GA():
 
     def test(self):
        alig_1 = self.population[0]
+       alig_2 = self.population[1]
+       for value in range(2):
+           alig_2.mutation()
+       print "alig_1"
        alig_1.print_seq()
-       my_scorer = Scoring(alig_1.np_alignment, alig_1.length)
-       score_of_pairs = my_scorer.sum_of_pairs()
-       print score_of_pairs
+       print "alig_2"
+       alig_2.print_seq()
+       
+       my_crossover = Crossover(alig_1, alig_2)
+       child = my_crossover.matched_col()
+       if child == None:
+           print "All aligned columnes the same"
+       else:
+           print "child"
+           child.print_seq()
+
        
        
        
