@@ -66,7 +66,9 @@ class GA():
         seq_name = []       # a list containing the name of the sequence
         seq_value = []       # a list to store each sequence   
         seq_flag = False    # if we are on the sqeuence data keep reading sequence data until } is reached
-        seq_str = ""        # used to get the compleate sequence on one line in the list 
+        seq_str = ""        # used to get the compleate sequence on one line in the list
+        max_len = 0         # stores the length of the longest sequence used to prevent the
+                            # operators selecting the padded gaps
 
         for line in openfile:
             line = line.strip()
@@ -90,6 +92,9 @@ class GA():
             if line[0] == '}':
                 #we are at the end of a sequence
                 seq_value.append(seq_str)
+                current_len = len(seq_str)
+                if current_len > max_len:
+                    max_len = current_len
                 seq_flag = False
                 seq_str = ""
         # close the file
@@ -111,26 +116,17 @@ class GA():
             for j, my_char in enumerate(line):
                 if my_char == '1':
                     np_seq[i][j] = '-'
-        return np_seq, seq_name, seq_length
+        return np_seq, seq_name, max_len
 
     def test(self):
        alig_1 = self.population[0]
-       alig_2 = self.population[1]
-       for value in range(10):
-           alig_2.mutation()
        
-       print "alig_1"
        alig_1.print_seq()
-       print "alig_2"
-       alig_2.print_seq()
-       
-       my_crossover = Crossover(alig_1, alig_2)
-       child = my_crossover.matched_col()
-       if child == None:
-           print "All aligned columnes the same"
-       else:
-           print "child"
-           child.print_seq()
+       alig_1.mutation()
+       #print alig_1.fittness()
+       #alig_1.mutation()
+       print
+       alig_1.print_seq()
 
        
        

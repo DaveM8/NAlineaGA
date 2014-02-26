@@ -1,4 +1,4 @@
-import Mutate
+from Mutate import Mutate
 import Scoring
 import numpy as np
 
@@ -6,10 +6,33 @@ import numpy as np
 class Alignment():
     def __init__(self, np_alignment, names, length):
         """Set up the object to pre form an aligment"""
-        global scoring_matrix
         self.np_alignment = np_alignment
         self.names = names
         self.length = length
+
+    def update_length(self):
+        """
+           keep the length of the sequence up to date
+           set the sequence length to the index of the last letter in the 
+           alignment
+           this method should be run after mutations and crossovers
+
+        """
+  
+        min_gaps = len(self.np_alignment[0])
+        # count in from the end 
+        for i, line in enumerate(self.np_alignment):
+            current_len = 0
+            for j in range(len(self.np_alignment[i])-1, 0, -1):
+                if self.np_alignment[i][j] == '-':
+                    current_len += 1
+                else:
+                    if current_len < min_gaps:
+                        min_gaps = current_len
+                    break
+        
+        max_len = len(self.np_alignment[0])-1 - min_gaps
+        self.length = max_len
 
     def print_seq(self):
         """
@@ -32,17 +55,18 @@ class Alignment():
            Return a tupel containing (sum-of-pairs, index)
         """
         score = Scoring.Scoring(self.np_alignment, self.length)
+
         self.score_of_pairs = score.sum_of_pairs()
         self.score_identity = score.identity()
+
         return self.score_of_pairs, self.score_identity
     def mutation(self):
         """ preform one of the six mutations at random 
             on the aligment. by pasing the data to a
             mutation object
         """
-        mu = Mutate.Mutate(self)
-        mu.choose_oper()
-        
+        mu = Mutate(self)
+        self.np_alignment = mu.gap_insertion()
 
     def remove_gap_col(self):
         """
