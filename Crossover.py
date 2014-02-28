@@ -1,7 +1,7 @@
 from random import randint
 import copy
 import Alignment
-
+import numpy as np
 class Crossover():
     """ class to carry out crossover on an alignment
         their are 3 crossover operators one is randomly 
@@ -15,8 +15,8 @@ class Crossover():
         self.p1 = copy.copy(alignment1)
         self.p2 = copy.copy(alignment2)
         #make copys of the original seqences
-        self.p1_alignment = self.p1.np_alignment.copy()
-        self.p2_alignment = self.p2.np_alignment.copy()
+        #self.p1_alignment = self.p1.np_alignment.copy()
+        #self.p2_alignment = self.p2.np_alignment.copy()
 
     def __chooseCrossover(self):
         """
@@ -39,16 +39,14 @@ class Crossover():
            with the correct sequences.
           
         """
-        # select a row at random
-        split_col = randint(0, len(self.p1_alignment[0]))
+        # select a col at random
+        split_col = randint(0, self.p1.length)
         # create the arrays to store the new alignments
-        child_1 = self.p1_alignment.copy()
-        child_2 = self.p2_alignment.copy()
-
+        child_1 = np.ones_like(self.p2.np_alignment, dtype = np.string_)
+        child_2 = np.ones_like(self.p1.np_alignment, dtype = np.string_)
         # split the alignment at split_col
         # make a copy of the left side of the alignments
-        left_child_1 = self.p1_alignment[:,:split_col].copy()
-        
+        left_child_1 = self.p1.np_alignment[:,:split_col].copy() # copys everthing before split_col
         
         # count the number of letters on the left of p1
         # not including gaps
@@ -59,33 +57,44 @@ class Crossover():
                 if value != '-':
                     letter_num += 1
             left_seq.append(letter_num)
-
-        # count the same number of protines in p2 
-        # save the index that index gives a valad
+        # count the same number of letters in p2 
+        # save the index, that index gives a valad
         # sequence to put with the child alignments
-        right_child_index = []
+        p2_index = []
         
-        for i, line in enumerate(self.p2_alignment):
+        for i, line in enumerate(self.p2.np_alignment):
             line_count = 0
             for j, value in enumerate(line):
                 if value != '-':
                     line_count += 1
                     if line_count == left_seq[i]:
                         # save the index it's the start of right_child
-                        right_child_index.append(j+1)    # +1 because of the way numpy indexes
-        
-        # use the correct indexs to create the two child alignments
-        for i in range(len(self.p1_alignment)):
-            #copy the right handside of p2 over the right handside of p1
-            p1_new_right= self.p2_alignment[i,right_child_index[i]:].copy()
-            child_1[i,right_child_index[i]:] = p1_new_right
-            
-            p2_new_right = self.p1_alignment[i,right_child_index[i]:].copy()
-            child_2[i, right_child_index[i]:] = p2_new_right
+                        p2_index.append(j+1)    # +1 because of the way numpy indexes
 
+
+        # use the correct indexs to create the two child alignments
+        for i in range(len(self.p1.np_alignment)):
+            
+            child_1_left = self.p1.np_alignment[i,:split_col].copy()
+            child_2_left = self.p2.np_alignment[i,:p2_index[i]].copy()
+
+            child_1_right = self.p2.np_alignment[i,p2_index[i]:].copy()
+            child_2_right = self.p1.np_alignment[i,split_col:].copy()
+            
+            child_1[i,:split_col] = child_1_left
+            child_1_right.resize(len(child_1[i,split_col:]))
+            child_1[i,split_col:] = child_1_right
+
+            child_2_right.resize(len(child_2[i,p2_index[i]:]))
+            child_2[i,:p2_index[i]] = child_2_left
+            child_2[i,p2_index[i]:] = child_2_right
+        
+        
         # create a new alignment to return
-        child_alignment_1 = Alignment.Alignment(child_1, self.p1.names, self.p1.length)
-        child_alignment_2 = Alignment.Alignment(child_2, self.p2.names, self.p2.length)
+        np_child_1 = np.asarray(child_1, dtype = np.string_)
+        np_child_2 = np.asarray(child_2, dtype = np.string_)
+        child_alignment_1 = Alignment.Alignment(np_child_1, self.p1.names)
+        child_alignment_2 = Alignment.Alignment(np_child_2, self.p2.names)
         return (child_alignment_1, child_alignment_2)
 
     def horizontal(self):

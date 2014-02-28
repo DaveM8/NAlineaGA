@@ -32,9 +32,9 @@ class GA():
         
         for i in range (self.pop_size):
             # read the sequence from file
-            np_seq, seq_names, seq_length = self.read_data()
+            np_seq, seq_names = self.read_data()
             # create an Alignment object with the data
-            my_alig =  Alignment.Alignment(np_seq, seq_names, seq_length)
+            my_alig =  Alignment.Alignment(np_seq, seq_names)
             # append the alignment object to the pouplation list
             self.population.append(my_alig)
         
@@ -102,7 +102,8 @@ class GA():
         
         # Save the sequences in a numpy array for fast proccessing
         # make the array 25% lager to give room to add gaps
-        np_seq = np.ones([len(seq_value),len(seq_value[0])*1.25], dtype= np.string_)
+        np_seq = np.ones([len(seq_value), max_len*1.25], dtype= np.string_)
+        
         seq_length = len(seq_value[0])
         # go throught the list and add every char to np_seq
         # also replace . used in BAliBASE with - used for alinaiGA
@@ -116,17 +117,24 @@ class GA():
             for j, my_char in enumerate(line):
                 if my_char == '1':
                     np_seq[i][j] = '-'
-        return np_seq, seq_name, max_len
+        return np_seq, seq_name
 
     def test(self):
        alig_1 = self.population[0]
-       
+       alig_2 = self.population[1]
+       print "alig_1"
        alig_1.print_seq()
-       alig_1.mutation()
-       #print alig_1.fittness()
-       #alig_1.mutation()
-       print
-       alig_1.print_seq()
+    
+       print "alig_2"
+       for i in range(40):
+           alig_2.mutation()
+       alig_2.print_seq()
+       my_cross = Crossover(alig_1, alig_2)
+       child_1, child_2 = my_cross.vertical()
+       print "child_1"
+       child_1.print_seq()
+       print "child_2"
+       child_2.print_seq()
 
        
        

@@ -4,18 +4,15 @@ import numpy as np
 
 
 class Alignment():
-    def __init__(self, np_alignment, names, length):
+    def __init__(self, np_alignment, names):
         """Set up the object to pre form an aligment"""
         self.np_alignment = np_alignment
         self.names = names
-        self.length = length
-
-    def update_length(self):
+    @property
+    def length(self):
         """
-           keep the length of the sequence up to date
-           set the sequence length to the index of the last letter in the 
-           alignment
-           this method should be run after mutations and crossovers
+           return the length of the longest sequence in the alignment
+           used to avoid selecting the padding rows with operators
 
         """
   
@@ -32,7 +29,7 @@ class Alignment():
                     break
         
         max_len = len(self.np_alignment[0])-1 - min_gaps
-        self.length = max_len
+        return max_len
 
     def print_seq(self):
         """
@@ -66,7 +63,7 @@ class Alignment():
             mutation object
         """
         mu = Mutate(self)
-        self.np_alignment = mu.gap_insertion()
+        self.np_alignment = mu.gap_shift()
 
     def remove_gap_col(self):
         """
