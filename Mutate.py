@@ -1,6 +1,9 @@
 import numpy as np
 from Scoring import Scoring
 from random import randint
+import Alignment
+import copy
+
 
 # A class to carry out mutations on the alignment
 class Mutate():
@@ -8,16 +11,19 @@ class Mutate():
         Provide matation operators
         Returns a mutated np_alignment data structour
     """
-    def __init__(self, alignment,  num_gaps = 1,
+    def __init__(self, alignment, smart = True,  num_gaps = 1,
                        smart_retry = 3, smart_dir_prob = 50):
 
-        self.obj = alignment           # the alignment object to be mutated
-        self.length = alignment.length
-        self.alignment = alignment.np_alignment     # the alignment to be mutated
-        self.num_gaps = num_gaps       # the number of gaps to insert in gap_insertion()
+        self.obj = copy.copy(alignment)           # the alignment object to be mutated
+        self.old_alignment = copy.copy(alignment)
+
+        #self.length = alignment.length
+        #self.alignment = alignment.np_alignment     # the alignment to be mutated
+        self.num_gaps = num_gaps               # the number of gaps to insert in gap_insertion()
         self.smart_retry = smart_retry # number of retrys used in smart operators
         self.smart_dir_prob = smart_dir_prob
-        #self.choose_oper()
+        self.smart = smart
+        self.choose_oper()
     
     def __insert_gap(self, row, col):
         """
@@ -31,14 +37,15 @@ class Mutate():
 
         """
         #print "Inserting gap at", row, col
+        #if self.alignment[row][-1] != '-':
+            # the last line is not a gap
+            #return
         # make a copy of the rest of the row droping the last '-'
-        rest_of_col = self.alignment[row][col:-1].copy()
+        rest_of_col = self.obj.np_alignment[row][col:-1].copy()
         #insert a gap '-'
-        self.alignment[row][col] = '-'
+        self.obj.np_alignment[row][col] = '-'
         # put the rest of the row back after the gap '-'
-        self.alignment[row][col+1:] = rest_of_col
-        # calulate the new length and update it
-        self.length = self.obj.length
+        self.obj.np_alignment[row][col+1:] = rest_of_col
 
 
     def __close_gap(self, row, cols):
@@ -57,52 +64,46 @@ class Mutate():
         for col in cols:
             #print "Removing gap at", row, col
             # copy all the data after the gap
-            row_after_gap = self.alignment[row][col+1:].copy()
+            row_after_gap = self.obj.np_alignment[row][col+1:].copy()
             #place that data in the row starting where the gap was
-            self.alignment[row][col:-1] = row_after_gap
+            self.obj.np_alignment[row][col:-1] = row_after_gap
             #insert the gap at the end of the row
-            self.alignment[row][-1] = '-'
-        # calculate the new length and update the current length
-        self.length = self.obj.length
+            self.obj.np_alignment[row][-1] = '-'
 
     def choose_oper(self):
         """
             randomly choose which if any operator is used on the alignment 
         """
-        
-        # First try a even odd for the mutation
-        rand_num = randint(1,3)
-        
+        rand_num = randint(1,7)
+    
         if rand_num == 1:
-            self.gap_insertion()
+            return self.gap_insertion()
         elif rand_num == 2:
-            self.gap_shift()
+            return self.gap_shift()
         elif rand_num == 3:
-            self.gap_merge()
+            return self.gap_merge()
         elif rand_num == 4:
-            self.smart_gap_insertion()
-        elif rand_num == 5:
-            self.smart_gap_shift()
-        elif rand_num == 6:
-            self.smart_gap_merge()
-        elif rand_num == 7:
             # no mutation
-            pass
+            return self.old_alignment.np_alignment
+        elif rand_num == 5:
+            return self.smart_gap_shift()
+        elif rand_num == 6:
+            return self.smart_gap_merge()
+        elif rand_num == 7:
+            return self.smart_gap_insertion()
         
-    def gap_insertion(self,num_gaps = 5):
+    def gap_insertion(self,num_gaps = 1):
         """
            insert num_gaps number of gaps at a random possition
            in each row
         """
-        print "Start length", self.length
-        for i, line in enumerate(self.alignment):
+        for i, line in enumerate(self.obj.np_alignment):
             for j in range(num_gaps):
-                position = randint(0,self.length)
+                position = randint(0,self.obj.length)
                 self.__insert_gap(i, position)
-        print "End length", self.length
-        return self.alignment
+        return self.obj.np_alignment
 
-    def gap_shift(self, all_lines = True):
+    def gap_shift(self, all_lines = False):
         """
            randomly choose a gap and move it to another position
            if all lines is set to true gaps will be shifited on every line
@@ -114,17 +115,17 @@ class Mutate():
         rows = []
         if all_lines:
             # all lines is true move a random gap on each line
-            for i, line in enumerate(self.alignment):
+            for i, line in enumerate(self.obj.np_alignment):
                 rows.append(i)
         else:
             # choose one row at random
-            rows.append(randint(0, len(self.alignment)-1))
+            rows.append(randint(0, len(self.obj.np_alignment)-1))
         
         for row in rows:
             #count the gaps on the row
             num_of_gaps = 0
-            for i in range (0, self.length+1):
-                if self.alignment[row][i] == '-':
+            for i in range (0, self.obj.length+1):
+                if self.obj.np_alignment[row][i] == '-':
                     num_of_gaps += 1
             # randomly choose one of the gaps
             gap_to_move = randint(0,num_of_gaps)
@@ -132,7 +133,7 @@ class Mutate():
             gap_count = 0
             gap_index = 0
             # no need to use self.length here because we will find our gap before that
-            for i, value in enumerate(self.alignment[row]):
+            for i, value in enumerate(self.obj.np_alignment[row]):
                 #count the gaps to find our randomly choosen gap
                 if value == '-':
                     # we have found the correct gap
@@ -145,9 +146,9 @@ class Mutate():
             #close the gap 
             self.__close_gap(row,[gap_index])
             #choose a random position and insert a gap
-            new_gap = randint(0, self.length)
+            new_gap = randint(0, self.obj.length)
             self.__insert_gap(row, new_gap)
-        return self.alignment
+        return self.obj.np_alignment
 
     def gap_merge(self, all_lines = False):
         """
@@ -177,17 +178,18 @@ class Mutate():
         rows = []
         if all_lines:
             # all lines is true, merge and move gaps on all lines
-            for i, line in enumerate(self.alignment):
+            for i, line in enumerate(self.obj.np_alignment):
                 rows.append(i)
         else:
             # choose one row at random
-            rows.append(randint(0, len(self.alignment)-1))
+            rows.append(randint(0, len(self.obj.np_alignment)-1))
         
         for row in rows:
             # count the number of gaps. the first will be zero
             num_of_gaps = -1
-            for i in range(0,self.length+1):
-                if self.alignment[row][i] == '-':
+            # whatch that -1 it was a + 1
+            for i in range(0,self.obj.length-1):
+                if self.obj.np_alignment[row][i] == '-':
                     num_of_gaps += 1
         
             two_or_three = randint(2,3)
@@ -227,7 +229,7 @@ class Mutate():
                 
                 # choose a random place and insert a gap
                 # depending on left_or_right place a second gap on the left or right 
-                new_gap = randint(0, self.length-1)
+                new_gap = randint(0, self.obj.length-1)
                        
                 
                 if left_or_right == 0:
@@ -242,7 +244,7 @@ class Mutate():
                         self.__insert_gap(row, new_gap+1)
                 elif left_or_right == 1:
                     # insert a new gap on the right
-                    if new_gap != self.length-1:
+                    if new_gap != self.obj.length-1:
                         self.__insert_gap(row, new_gap)
                         self.__insert_gap(row, new_gap+1)
                     else:
@@ -276,8 +278,8 @@ class Mutate():
                 # choose a place at random to insert a gap and 
                 # insert a gap at the left and right
                 
-                other_new_gap = randint(0, self.length-1)
-                if other_new_gap == self.length-1:
+                other_new_gap = randint(0, self.obj.length-1)
+                if other_new_gap == self.obj.length-1:
                     # the new gap is going at the very end of the sequence
                     # insert the other two gaps to the left
                     self.__insert_gap(row, other_new_gap-2)
@@ -295,7 +297,7 @@ class Mutate():
                     self.__insert_gap(row, other_new_gap)
                     self.__insert_gap(row, other_new_gap+1)
                     
-        return self.alignment
+        return self.obj.np_alignment
 
 
     def __find_gap_index(self, row, gap_num):
@@ -308,15 +310,15 @@ class Mutate():
         """
         #print "In __find_gap_index", row, gap_num
         gap_count = 0
-        for i, value in enumerate(self.alignment[row]):
+        for i, value in enumerate(self.obj.np_alignment[row]):
             #count the gaps to find our randomly choosen gap
             if value == '-':                
                 # have we have found the correct gap
                 if gap_count == gap_num:
                     return i
                 gap_count += 1
-   
-    def __better_alignment(self, test_alignment):
+
+    def __better_alignment(self):
         """
            evaluate if an alignment is better that another
            in one of sum of pairs or identity and better
@@ -326,24 +328,22 @@ class Mutate():
                   False self.alignment is better
         """
         
-        test_score = Scoring(test_alignment, self.length)
-        self_score = Scoring(self.alignment, self.length)
+        test_score = Scoring(self.old_alignment)
+        self_score = Scoring(self.obj)
 
         test_identity = test_score.identity()
         test_sum_of_pairs = test_score.sum_of_pairs()
-        #print "test", test_identity, test_sum_of_pairs
 
         self_identity = self_score.identity()
         self_sum_of_pairs = self_score.sum_of_pairs()
 
-        #print  self_identity, ',', self_sum_of_pairs
         if self_identity > test_identity and self_sum_of_pairs >= test_sum_of_pairs:
             return True
         if self_sum_of_pairs > test_sum_of_pairs and self_identity >= test_identity:
             return True
         return False
 
-    def smart_gap_insertion(self,smart_num_gaps = 1, attempts = 100):
+    def smart_gap_insertion(self,smart_num_gaps = 1, attempts = 3):
         """
            Choose a position at random insert a gap
            then insert a gap at the start or end of every other row
@@ -353,13 +353,11 @@ class Mutate():
            identity
         """
 
-        # make a copy of the alignment to work on
-        old_alignment = self.alignment.copy()
 
         for trys in range(attempts):      
             # choose a random position
-            row = randint(0, len(self.alignment)-1)
-            col = randint(0, self.length)
+            row = randint(0, len(self.obj.np_alignment)-1)
+            col = randint(0, self.obj.length)
             
             # insert a gap in the random position
             self.__insert_gap(row, col)
@@ -378,22 +376,22 @@ class Mutate():
                 #add the gaps at the end
                 start = False
 
-            for i, line in enumerate(self.alignment):
+            for i, line in enumerate(self.obj.np_alignment):
                 # do not add a gap at the start of the row we added already
                 if i == row: continue
                 if start == True:
                     self.__insert_gap(i, 0)
                 else:
-                    self.__insert_gap(i, self.length)
+                    self.__insert_gap(i, self.obj.length)
                     
             # test to see if the new alignment is better
-            if self.__better_alignment(old_alignment):
+            if self.__better_alignment():
                 print "Found Better"
                 # if I'm keeping the new alignment do nothing
-                return self.alignment
+                return self.obj.np_alignment
             else:
                 # revert to the origianl alignment
-                self.alignment = old_alignment.copy()
+                self.obj.np_alignment = self.old_alignment.np_alignment.copy()
             if start:
                 # last time we placed gaps at the start 
                 # we have droped that so subtract 1 from smart_dir_prob
@@ -405,7 +403,7 @@ class Mutate():
         #return old_alignment
         # do not return any value set the self.alignment to old_alignment
         print "no better alignment found"
-        return old_alignment
+        return self.old_alignment.np_alignment
 
     def smart_gap_shift(self, attempts = 3):
         """
@@ -420,15 +418,13 @@ class Mutate():
         # try to do this 3 times with different gaps
         # if a better alignment is found stop and keep the new alignment
         for count in range(attempts):
-        # make a copy of the strating aligment
-            old_alignment = self.alignment.copy()
             # choose a row at random
-            row = randint(0, len(self.alignment)-1)
+            row = randint(0, len(self.obj.np_alignment)-1)
 
             # count the gaps on the row
             num_of_gaps = 0
-            for i in range(0, self.length):
-                if self.alignment[row][i] == '-':
+            for i in range(0, self.obj.length):
+                if self.obj.np_alignment[row][i] == '-':
                     num_of_gaps += 1
             # randomly choose one of the gaps
             gap_to_move = randint(0,num_of_gaps)
@@ -470,16 +466,16 @@ class Mutate():
                     right_index += 1
                     new_gap_index = gap_index + right_index
                     #prevent an overflow by moving a gap from the end
-                    while new_gap_index >= len(self.alignment[0])-1:
+                    while new_gap_index >= len(self.obj.np_alignment[0])-1:
                         new_gap_index -= 1
                     self.__insert_gap(row, new_gap_index)
                 # check if the new alignment is better if so keep it
                 # if not close the gap and try another to the left or right
                 #for line in self.alignment:
                 #    print ''.join(line)
-                if self.__better_alignment(old_alignment):
+                if self.__better_alignment():
                     print "found better"
-                    return self.alignment
+                    return self.obj.np_alignment
                 else:
                     #  adjest probility of moving left or right
                     if left:
@@ -487,24 +483,19 @@ class Mutate():
                     else:
                         self.smart_dir_prob += 1
                     # 
-                    self.alignment = old_alignment.copy()
-        return old_alignment
+                    self.obj.np_alignment = self.old_alignment.np_alignment.copy()
+        return self.old_alignment.np_alignment
         
-            
     def smart_gap_merge(self, attempts = 3):
         """
            call gap_merge but only keep the alignment if it improves
         """
-        old_alignment = self.alignment.copy()
         
         for trys in range(attempts):
             self.gap_merge()
-            if __better_alignment(old_alignment):
-                return self.alignment
+            if self.__better_alignment():
+                return self.obj.np_alignment
             else:
-                self.alignment = old_alignment.copy()
-        #return old_alignment        
+                self.obj.np_alignment = self.old_alignment.np_alignment.copy()
         # return to the original alignment
-        return old_alignment
-
-   
+        return self.old_alignment.np_alignment

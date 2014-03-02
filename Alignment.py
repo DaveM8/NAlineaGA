@@ -15,7 +15,7 @@ class Alignment():
            used to avoid selecting the padding rows with operators
 
         """
-  
+        
         min_gaps = len(self.np_alignment[0])
         # count in from the end 
         for i, line in enumerate(self.np_alignment):
@@ -51,19 +51,19 @@ class Alignment():
         """Calulate the fittness of an Alignment
            Return a tupel containing (sum-of-pairs, index)
         """
-        score = Scoring.Scoring(self.np_alignment, self.length)
+        score = Scoring.Scoring(self)
 
         self.score_of_pairs = score.sum_of_pairs()
         self.score_identity = score.identity()
 
         return self.score_of_pairs, self.score_identity
-    def mutation(self):
+    def mutation(self, smart = True):
         """ preform one of the six mutations at random 
             on the aligment. by pasing the data to a
             mutation object
         """
-        mu = Mutate(self)
-        self.np_alignment = mu.gap_shift()
+        mu = Mutate(self, smart)
+        self.np_alignment = mu.choose_oper()
 
     def remove_gap_col(self):
         """
