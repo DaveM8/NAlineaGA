@@ -1,5 +1,6 @@
 import numpy as np
 from random import randint
+import copy
 
 import Alignment
 import Mutate
@@ -7,7 +8,7 @@ from Crossover import Crossover
 from Scoring import Scoring
 
 class GA():
-    def __init__(self,path_to_data, pop_size=50, num_generations=1000):
+    def __init__(self,path_to_data, pop_size=50, num_generations=1000, candidate_size = 2, comparison_size = 4):
         """ class that creates the the pouplation of alignments
             and keeps track of the number of generations
         """
@@ -17,7 +18,8 @@ class GA():
         self.data_file = path_to_data
         self.population = {}
         self.create_population()
-        #self.run()
+        self.candidate_size = candidate_size
+        self.comparison_size = comparison_size
         
         
     def selection(self):
@@ -27,12 +29,63 @@ class GA():
         """
         pass
     def tournament(self):
-        """ Run the tourment at the end of each generation always keeping
-            the top 40% of the pouplation and selecting the best of
-            the remaining 60%
+        """ 
+           run a tournament to select the best candation for mating
+           currently it returns the last candidate if there is a draw
+           TODO handbags at dawn if it is a tie
         """
-        # select a number of candidates for  
-        pass
+        # randomly choose a candidate set and a comparsion set
+        candidates = []
+        comparison_set = []
+        for i in range(self.candidate_size):
+            candidates.append(self.random_candidate())
+        
+        for i in range(self.comparison_size):
+            comparison_set.append(self.random_candidate())
+
+        candidate_score = {}
+        total_score = 0
+        for each in candidates:
+            for j in comparison_set:
+                total_score += self.dominates(each,j)
+            candidate_score[each] = total_score
+            total_score = 0
+        
+        high_score = 0
+        winner = candidates[0]
+        for each in candidates:
+            if candidate_score[each] > high_score:
+                high_score = candidate_score[each]
+                #print "high_score", high_score 
+                winner = each
+        return winner
+                
+    def dominates(self,cand_1, cand_2):
+        """
+           Return 2 cand_1 fully dominates cand_2
+                  1 cand_1 partly dominates cand_2
+                 -1 cand_2 fully dominates cand_1
+                  0 they are equal
+
+        """
+        cand_1_SOP, cand_1_ID = self.population[cand_1].fittness()
+        cand_2_SOP, cand_2_ID = self.population[cand_2].fittness()
+        
+        # cand 1 fully dominates cand 2
+        if cand_1_SOP > cand_2_SOP and cand_1_ID > cand_2_ID:
+            return 2
+        # cand 1 partly dominates cand 2
+        if cand_1_SOP > cand_2_SOP:
+            return 1
+        # cand 1 partly dominates cand 2
+        if cand_1_ID > cand_2_SOP:
+            return 1
+        # cand 2 fully dominates cand 1
+        if cand_2_SOP > cand_1_SOP and cand_2_ID > cand_1_SOP:
+            return -1
+        # thay are equal
+        return 0
+        
     def gen_end(self):
         # end of generation 
         # keep the 50  candidates with the best sum-of-pairs
@@ -70,7 +123,7 @@ class GA():
             my_alig =  Alignment.Alignment(np_seq, seq_names)
             # append the alignment object to the pouplation list
             self.population[my_alig.id] = my_alig
-        self.start = self.population[0]    
+        self.start = copy.copy(self.population[0])    
     def run(self):
         """ 
            run the GA
@@ -79,10 +132,8 @@ class GA():
                do some crossovers
                hold a tournment to decide which indiviuals I keep 
         """
-        global matched_error
-        global vertical_error
         num_mutations = 20
-        num_crossovers = 50
+        num_crossovers = 10
 
         # set up the pouplation
         for gen_num in range(self.num_generations):
@@ -93,12 +144,13 @@ class GA():
                 self.population[pick_one].mutation()
 
             for i in range(num_crossovers):
-                p1 = self.random_candidate()
-                p2 = self.random_candidate()
-                while p1 == p2:
-                    p2 = self.random_candidate()
                 
-
+                p1 = self.tournament()
+                p2 = self.tournament()
+                while p1 == p2:
+                    p2 = self.tournament()
+                
+                    
                 cross_over = Crossover(self.population[p1],
                                        self.population[p2])
 
