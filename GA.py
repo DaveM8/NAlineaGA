@@ -15,10 +15,10 @@ class GA():
         self.pop_size = pop_size
         self.num_generations = num_generations
         self.data_file = path_to_data
-        self.population = []
+        self.population = {}
         self.create_population()
         #self.run()
-        self.indivdual_id = 0
+        
         
     def selection(self):
         """
@@ -33,10 +33,29 @@ class GA():
         """
         # select a number of candidates for  
         pass
-    def end_gen(self):
+    def gen_end(self):
         # end of generation 
-        # keep the top 40% of candidates
-        pass
+        # keep the 50  candidates with the best sum-of-pairs
+        # keep the 
+        scores = []
+        new_pop = {}
+        #for line in self.population:
+            #print line
+        for cand in self.population:
+            line = []
+            sum_of_pairs, identity = self.population[cand].fittness()
+            line.append(sum_of_pairs)
+            line.append(identity)
+            line.append(cand)
+            scores.append(line)
+        
+        sort_sums = sorted(scores, key = lambda x:(x[0],x[1]))
+        sort_identity = sorted(scores, key = lambda x:(x[1],x[0]))
+        for i in range(50):
+            new_pop[sort_sums[-i][2]] = self.population[sort_sums[-i][2]]
+            new_pop[sort_identity[-i][2]] = self.population[sort_identity[-i][2]]
+
+        self.population = new_pop
     def create_population(self):
         """
            Create the pouplation 
@@ -49,10 +68,9 @@ class GA():
             
             # create an Alignment object with the data
             my_alig =  Alignment.Alignment(np_seq, seq_names)
-    
             # append the alignment object to the pouplation list
-            self.population.append(my_alig)
-            
+            self.population[my_alig.id] = my_alig
+        self.start = self.population[0]    
     def run(self):
         """ 
            run the GA
@@ -61,48 +79,64 @@ class GA():
                do some crossovers
                hold a tournment to decide which indiviuals I keep 
         """
-        num_mutations = 2
-        num_crossovers = 30
+        global matched_error
+        global vertical_error
+        num_mutations = 20
+        num_crossovers = 50
 
         # set up the pouplation
         for gen_num in range(self.num_generations):
-            print "gen_num", gen_num
+            print "gen_num", gen_num, "pop size", len(self.population)
             # preform the mutations
             for i in range(num_mutations):
-                pick_one = randint(0, self.pop_size-1)
+                pick_one = self.random_candidate()
                 self.population[pick_one].mutation()
 
             for i in range(num_crossovers):
-                p1 = randint(0, self.pop_size-1)
-                p2 = randint(0, self.pop_size-1)
+                p1 = self.random_candidate()
+                p2 = self.random_candidate()
                 while p1 == p2:
-                    p2 = randint(0, self.pop_size-1)
+                    p2 = self.random_candidate()
                 
 
                 cross_over = Crossover(self.population[p1],
                                        self.population[p2])
 
                 child_1, child_2 = cross_over.run()
-                
+
                 if child_1 != None:
-                    self.population.append(child_1)
+                    self.population[child_1.id] = child_1
                 if child_2 != None:
-                    self.population.append(child_2)
+                    self.population[child_2.id] = child_2
+            self.gen_end()
 
         scores = []
         for candidate in self.population:
             line = []
-            sum_of_pairs, identity = candidate.fittness()
+            sum_of_pairs, identity = self.population[candidate].fittness()
             line.append(sum_of_pairs)
             line.append(identity)
             scores.append(line)
         
-        sort = sorted(scores, key = lambda x:(x[0],x[1]))
-        for line in sort:
-            print line
-        print len(sort)
-            
-    
+        sort_sum = sorted(scores, key = lambda x:(x[0],x[1]))
+        sort_identity = sorted(scores, key = lambda x:(x[1],x[0]))
+
+        for key in self.population:
+            print "candidate ID", key
+            self.population[key].print_seq()
+            print self.population[key].fittness()
+            print len(self.population[key].np_alignment[0])
+        print
+        self.start.print_seq()
+        print self.start.fittness()
+    def random_candidate(self):
+        """
+           Return a random candidate ID
+        """
+        keys = self.population.keys()
+        rand_one = randint(0, len(keys)-1)
+        return keys[rand_one]
+
     def read_data(self):
         """ Read The sequences to be alinged. 
             BAliBASE set of aligments will be used to test algorithim
@@ -173,21 +207,14 @@ class GA():
     def test(self):
        alig_1 = self.population[0]
        alig_2 = self.population[1]
-       print alig_1.fittness()
-       print alig_2.fittness()
-       print "alig_1"
        alig_1.print_seq()
-    
-       print "alig_2"
-       for i in range(40):
-           alig_2.mutation()
-       alig_2.print_seq()
-       my_cross = Crossover(alig_1, alig_2)
-       child_1, child_2 = my_cross.vertical()
-       print "child_1"
-       child_1.print_seq()
-       print "child_2"
-       child_2.print_seq()
+       for i in range(10):
+           alig_1.mutation()
+       
+       alig_1.print_seq()
+       #alig_1.remove_gap_col()
+       print
+       alig_1.print_seq()
 
        
        

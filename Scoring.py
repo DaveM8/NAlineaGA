@@ -81,9 +81,13 @@ class Scoring():
         for i in range(len(self.np_alignment[0])):
             #select a coloum
             col = self.np_alignment[:,i]
+                
             # make a set of the column
             col_set = set(col)
-            if len(col_set) == 1 and col[0] != '-': # do not count cols of gaps
-                # there is only one value in the set the column is aligned
-                self.score_identity += 1
+            if len(col_set) == 1:
+                if col[0] == '-' or col[0] == '': # do not count cols of gaps
+                    pass
+                else:
+                    # there is only one value in the set the column is aligned
+                    self.score_identity += 1
         return self.score_identity

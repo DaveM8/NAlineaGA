@@ -54,22 +54,25 @@ class Mutate():
            col is a list so I can look after the the removal of
            many gaps at once here
         """
-        
+        try:
         # sort the list of gaps to be removed
-        cols.sort()
-        # reverse the list so we always remove the right most
-        # gaps first to prevent the indexs shifting when we
-        # remove "lefter" gaps
-        cols.reverse()
-        for col in cols:
-            #print "Removing gap at", row, col
-            # copy all the data after the gap
-            row_after_gap = self.obj.np_alignment[row][col+1:].copy()
-            #place that data in the row starting where the gap was
-            self.obj.np_alignment[row][col:-1] = row_after_gap
-            #insert the gap at the end of the row
-            self.obj.np_alignment[row][-1] = '-'
-
+            cols.sort()
+            # reverse the list so we always remove the right most
+            # gaps first to prevent the indexs shifting when we
+            # remove "lefter" gaps
+            cols.reverse()
+            for col in cols:
+                #print "Removing gap at", row, col
+                # copy all the data after the gap
+                row_after_gap = self.obj.np_alignment[row][col+1:].copy()
+                #place that data in the row starting where the gap was
+                self.obj.np_alignment[row][col:-1] = row_after_gap
+                #insert the gap at the end of the row
+                self.obj.np_alignment[row][-1] = '-'
+                
+        except TypeError:
+            print "col", col
+            return self.old_alignment.np_alignment
     def choose_oper(self):
         """
             randomly choose which if any operator is used on the alignment 
@@ -317,7 +320,7 @@ class Mutate():
                 if gap_count == gap_num:
                     return i
                 gap_count += 1
-
+        # what to do if I dont find the index of the gap
     def __better_alignment(self):
         """
            evaluate if an alignment is better that another
@@ -386,7 +389,6 @@ class Mutate():
                     
             # test to see if the new alignment is better
             if self.__better_alignment():
-                print "Found Better"
                 # if I'm keeping the new alignment do nothing
                 return self.obj.np_alignment
             else:
@@ -399,10 +401,7 @@ class Mutate():
                 self.smart_dir_prob -= 1
             else:
                 self.smart_dir_prob +=1
-        #print "Keeping alignment"
-        #return old_alignment
         # do not return any value set the self.alignment to old_alignment
-        print "no better alignment found"
         return self.old_alignment.np_alignment
 
     def smart_gap_shift(self, attempts = 3):
@@ -430,6 +429,19 @@ class Mutate():
             gap_to_move = randint(0,num_of_gaps)
             # get the index of the gap to be moved
             gap_index = self.__find_gap_index(row, gap_to_move)
+            # ensure that a gap is returned
+            fail_counter = 0
+            fail_limit = 10
+            while gap_index == None:
+                # gap_index could be None if the gap 
+                # was not found or there is no gaps
+                # in a line. Try to find another valid gap index
+                # and if not return the starting sequence
+                fail_counter += 1
+                if fail_counter >= fail_limit:
+                    return self.old_alignment.np_alignment 
+                gap_to_move = randint(0, num_of_gaps)
+                gap_index = self.__find_gap_index(row, gap_to_move)
 
 
             left_index  = 0
@@ -471,10 +483,7 @@ class Mutate():
                     self.__insert_gap(row, new_gap_index)
                 # check if the new alignment is better if so keep it
                 # if not close the gap and try another to the left or right
-                #for line in self.alignment:
-                #    print ''.join(line)
                 if self.__better_alignment():
-                    print "found better"
                     return self.obj.np_alignment
                 else:
                     #  adjest probility of moving left or right

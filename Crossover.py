@@ -2,6 +2,8 @@ from random import randint
 import copy
 import Alignment
 import numpy as np
+
+
 class Crossover():
     """ class to carry out crossover on an alignment
         their are 3 crossover operators one is randomly 
@@ -14,6 +16,8 @@ class Crossover():
         # so we do not alter the parents with the crossover
         self.p1 = copy.copy(alignment1)
         self.p2 = copy.copy(alignment2)
+        self.old_1 = copy.copy(alignment1)
+        self.old_2 = copy.copy(alignment2)
         #make copys of the original seqences
         #self.p1_alignment = self.p1.np_alignment.copy()
         #self.p2_alignment = self.p2.np_alignment.copy()
@@ -49,7 +53,7 @@ class Crossover():
         """
         try:
         # select a col at random
-            split_col = randint(0, self.p1.length)
+            split_col = randint(self.p1.last_start+1, self.p1.short_length-2)
             # create the arrays to store the new alignments
             child_1 = np.ones_like(self.p2.np_alignment, dtype = np.string_)
             child_2 = np.ones_like(self.p1.np_alignment, dtype = np.string_)
@@ -60,6 +64,7 @@ class Crossover():
             # count the number of letters on the left of p1
             # not including gaps
             left_seq = []
+
             for line in left_child_1:
                 letter_num = 0
                 for value in line:
@@ -79,7 +84,6 @@ class Crossover():
                         if line_count == left_seq[i]:
                             # save the index it's the start of right_child
                             p2_index.append(j+1)    # +1 because of the way numpy indexes
-
 
             # use the correct indexs to create the two child alignments
             for i in range(len(self.p1.np_alignment)):
@@ -104,9 +108,19 @@ class Crossover():
             #np_child_2 = np.asarray(child_2, dtype = np.string_)
             child_alignment_1 = Alignment.Alignment(child_1, self.p1.names)
             child_alignment_2 = Alignment.Alignment(child_2, self.p2.names)
+
+            child_alignment_1.remove_gap_col()
+            child_alignment_2.remove_gap_col()
+
             return (child_alignment_1, child_alignment_2)
         except IndexError:
+            #it is possibl that an alignment acan become invalad
+            # iif this happens then is becomes impossible
+            # to do an accurete vertical split
+            # catch IndexError
+            #print "IndexError in Crossover.vertical"
             return None, None
+
             
 
     def horizontal(self):
@@ -132,7 +146,10 @@ class Crossover():
         #self.p2.np_alignment = p2_child.copy()
         child_alignment_1 = Alignment.Alignment(p1_child, self.p1.names)
         child_alignment_2 = Alignment.Alignment(p2_child, self.p2.names)
+        child_alignment_1.remove_gap_col()
+        child_alignment_2.remove_gap_col()
         return (child_alignment_1, child_alignment_2) 
+
     def matched_col(self):
         """
            choose a fully aligned column from from one of the parents
@@ -160,15 +177,23 @@ class Crossover():
                 # both cols are aligned 
                 pass
             elif len(p1_set) == 1:
-                # p1 is aligned
+                # p1 is a fully aligned col
                 # dont count columns of gaps
-                if p1_col[0] != '-':
+                
+                if p1_col[0] == '-' or p1_col[0] == '':
+                    pass
+                else:
+                    #print "p1_col", p1_col
                     p1_num_col += 1
                     p1_indexs.append(i)
             elif len(p2_set) == 1:
+                
                 # p2 is aligned
                 # dont count cloumns of gaps
-                if p2_col[0] != '-':
+                if p2_col[0] == '-' or p2_col[0] == '':
+                    pass
+                else:
+                    #print 'p2_col', p2_col
                     p2_num_col += 1
                     p2_indexs.append(i)
 
@@ -178,14 +203,16 @@ class Crossover():
             if p1_num_col == 0:
                 # they have all the same aligned cols
                 return None, None
-            
+           
         if p1_num_col < p2_num_col:
             # line up a col in p1
+            #print "p2_indexs", p2_indexs
             which_col = randint(0, p2_num_col-1)
             child = self.__match_the_col(self.p1, self.p2, p2_indexs[which_col])
 
         elif p2_num_col < p1_num_col:
             #line up a col in p2
+            #print "p1_indexs", p1_indexs
             which_col = randint(0, p1_num_col-1)
             child = self.__match_the_col(self.p2, self.p1, p1_indexs[which_col])
         else:
@@ -199,59 +226,65 @@ class Crossover():
                 #line up a col in p2
                 which_col = randint(0, p1_num_col-1)
                 child = self.__match_the_col(self.p2, self.p1, p1_indexs[which_col])
-
+        if child is None:
+            return None, None
+        child.remove_gap_col()
         return child, None
 
     def __match_the_col(self, p1, p2, which_col):
         """
            Do the work of matching a colume in an alignment
         """
-        # count the number of letters on each line
-        # not including gaps up until which_col +1
-        left_child = p2.np_alignment[:,:which_col+1].copy()
-        for line in left_child:
-            print ''.join(line)
-        # first count the correct number of letters to the fully aligned col in p2
-        letter_num = []
-        for line in left_child:
-            letter_count = 0
-            for j, value in enumerate(line):
-                if value != '-':
-                    letter_count += 1
-            letter_num.append(letter_count)
+        
+        try:
+            left_child = p2.np_alignment[:,:which_col+1].copy()
+            #print "left_child"
+            #for line in left_child:
+            #    print ''.join(line)
+            #print "p2"
+            #p2.print_seq()
+            # first count the correct number of letters to the fully aligned col in p2
+            letter_num = []
+            for line in left_child:
+                letter_count = 0
+                for j, value in enumerate(line):
+                    if value != '-':
+                        letter_count += 1
+                letter_num.append(letter_count)
+            #print "letter_num", letter_num
+            # next find the index of that letter in p1
+            index = []
+            for i, line in enumerate(p1.np_alignment):
+                letter_count = 0
+                for j, value in enumerate(line):
+                    if value != '-':
+                        letter_count += 1
+                        if letter_count == letter_num[i]:
+                            index.append(j)
+                            break
 
-        # next find the index of that letter in p1
-        index = []
-        print letter_num
-        for line in p1.np_alignment:
-            print ''.join(line)
-        for i, line in enumerate(p1.np_alignment):
-            letter_count = 0
-            for j, value in enumerate(line):
-                if value != '-':
-                    letter_count += 1
-                    if letter_count == letter_num[i]:
-                        index.append(j)
-                        break
-
-        # find which line the letter has the highest index
-        largest_index_value = 0
-        largest_index_line = 0
-        print "index", index
-        for i, value in enumerate(index):
-            if value > largest_index_value:
-                largest_index_value = value
-                largest_index_line = i
-        print "lagerst_index", largest_index_line
-        # move all the other lines to that index 
-        for line_num, line in enumerate(p1.np_alignment):
-            if line_num != largest_index_line:
-                num_gaps = largest_index_value - index[line_num]
-                for j in range(num_gaps):
-                    self.__insert_gap(p1, line_num, index[line_num]+j)
-        #return the alignment with the extra aligned column
-        return p1, None
-
+            # find which line the letter has the highest index
+            largest_index_value = 0
+            largest_index_line = 0
+            #print "index", index
+            for i, value in enumerate(index):
+                if value > largest_index_value:
+                    largest_index_value = value
+                    largest_index_line = i
+            #print "lagerst_index", largest_index_line
+            # move all the other lines to that index 
+            for line_num, line in enumerate(p1.np_alignment):
+                if line_num != largest_index_line:
+                    num_gaps = largest_index_value - index[line_num]
+                    for j in range(num_gaps):
+                        if index[line_num]+j >= len(p1.np_alignment[0]):
+                            # inserting a gap here will cause an overflow
+                            return None, None
+                        self.__insert_gap(p1, line_num, index[line_num]+j)
+            #return the alignment with the extra aligned column
+            return p1
+        except IndexError:
+            return None
 
     def __insert_gap(self, alignment, row, col):
         """
@@ -265,7 +298,4 @@ class Crossover():
         alignment.np_alignment[row][col] = '-'
         # put the rest of the row back after the gap '-'
         alignment.np_alignment[row][col+1:] = rest_of_col
-    def remove_col_gaps (self):
-        """
-           Remove any cols which contain only gaps
-        """
+

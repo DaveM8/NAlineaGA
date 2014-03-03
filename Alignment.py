@@ -2,12 +2,70 @@ from Mutate import Mutate
 import Scoring
 import numpy as np
 
-
+number = 0
 class Alignment():
     def __init__(self, np_alignment, names):
         """Set up the object to pre form an aligment"""
+        global number
         self.np_alignment = np_alignment
         self.names = names
+        self.id = number
+        number += 1
+    
+    def same_alignment(self, other_aligment):
+        """
+           Verifiy that another alignment is the same not including
+           gaps
+        """
+        for i, line in enumerate(self.np_alignment):
+            pass
+    @property
+    def last_start(self):
+        """
+           Return the index of the row with the most gaps at the start
+           before a letter.
+           Needed in Crossover.vertical because if i try to split
+           the alignment on cols that has no letters at on the left
+           I'll get index errors
+        """
+        max_gaps = 0
+        # count in from the end 
+        for i, line in enumerate(self.np_alignment):
+            current_len = 0
+            for j in range(len(self.np_alignment[i])-1):
+                if self.np_alignment[i][j] == '-':
+                    current_len += 1
+                else:
+                    if current_len > max_gaps:
+                        max_gaps = current_len
+                    # only want the first letter on a line so break
+                    break
+        return max_gaps
+    @property
+    def short_length(self):
+        """
+           Return the length of the shortest sequence in the alignment
+           Nesseary in Crossover.vertical() because if I pick a column
+           to split which has only gaps left on one or more of the
+           lines then I have no index the letter
+        """
+        max_gaps = 0
+        # count in from the end 
+        for i, line in enumerate(self.np_alignment):
+            current_len = 0
+            for j in range(len(self.np_alignment[i])-1, 0, -1):
+                if self.np_alignment[i][j] == '-':
+                    current_len += 1
+                else:
+                    if current_len > max_gaps:
+                        max_gaps = current_len
+                    # only want the first letter on a line so break
+                    break
+        # return the length of the shortest line
+        min_len = len(self.np_alignment[0])-1 - max_gaps
+        return min_len
+
+        
     @property
     def length(self):
         """
@@ -62,13 +120,36 @@ class Alignment():
             on the aligment. by pasing the data to a
             mutation object
         """
-        mu = Mutate(self, smart)
+        mu = Mutate(self)
         self.np_alignment = mu.choose_oper()
+        self.remove_gap_col()
 
     def remove_gap_col(self):
         """
            remove all columns containing only gaps
-           there will be 2 types of gap columns 
-           ones in between two data containing cols
-           ones at the end 
+ 
         """
+        # go throught the alignment as far as  self.length
+        # and remove any colums which contain only rows
+        col_index = []
+        for i in range(self.length):
+            col = self.np_alignment[:,i]
+            col_set = set(col)
+            if len(col_set) == 1 and col[0] == '-':
+                #the col contains only gaps remove it
+                col_index.append(i)
+        col_index.sort()
+        col_index.reverse()
+        for col in col_index:
+            self.remove_col(col)
+
+    def remove_col(self, col):
+        
+        # copy all the cols after the one we want to remove
+        right = self.np_alignment[:,col+1:].copy()
+        # write that copy back starting at the col to be removed
+        self.np_alignment[:,col:-1:] = right
+        # make the last col gaps
+        self.np_alignment[:,-1:] = '-'
+        
+        
