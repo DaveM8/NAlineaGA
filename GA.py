@@ -8,7 +8,8 @@ from Crossover import Crossover
 from Scoring import Scoring
 
 class GA():
-    def __init__(self,path_to_data, pop_size=50, num_generations=1000, candidate_size = 2, comparison_size = 4):
+    def __init__(self,path_to_data, pop_size=50, num_generations=1000,
+                 candidate_size = 2, comparison_size = 4, sigma_share = 3.14):
         """ class that creates the the pouplation of alignments
             and keeps track of the number of generations
         """
@@ -20,8 +21,9 @@ class GA():
         self.create_population()
         self.candidate_size = candidate_size
         self.comparison_size = comparison_size
-        
-        
+        self.sigma_share = sigma_share
+
+
     def selection(self):
         """
            Select which candates are kept till the next generation
@@ -39,7 +41,7 @@ class GA():
         comparison_set = []
         for i in range(self.candidate_size):
             candidates.append(self.random_candidate())
-        
+
         for i in range(self.comparison_size):
             comparison_set.append(self.random_candidate())
 
@@ -50,16 +52,89 @@ class GA():
                 total_score += self.dominates(each,j)
             candidate_score[each] = total_score
             total_score = 0
+
         
         high_score = 0
-        winner = candidates[0]
+        #TODO if one is best retuen it 
+        # else call share() on the best two
         for each in candidates:
-            if candidate_score[each] > high_score:
-                high_score = candidate_score[each]
-                #print "high_score", high_score 
-                winner = each
-        return winner
-                
+            scores .append(candidate_score[each])
+
+        scores.sort()
+        if scores[-1] == scores[-2]:
+            # there is a tie
+            return share(cand_1, cand_2)
+        else:
+            #one candidate is brtter
+            return 
+    def share(self, cand_1, cand_2):
+        """
+           Handbags at Dawn
+           If there is a tie in the domination
+           This function will reduce the fittness of candidates
+           depending how many other candidats are in there neighborhood
+           sudo code
+           for ever candidate
+              calculate to
+        """
+        # calculate the fittness scores of all the population
+        self.all_scores = {}
+        for key in self.population:
+            self.all_scores[key] = self.population[keys]
+        
+        # get the values of the two candidates 
+        cand_1_SOP, cand_1_ID = self.all_scores[cand_1]
+        cand_1_SOP, cand_2_ID = self.all_scores[cand_2]
+        
+        # calculate the objective fittness of the soultions
+        m1 = calc_dist(cand_1)
+        m2 = calc_dist(cand_2)
+        
+        # reduce the fittness of the candidates
+        cand_1_SOP /= m1
+        cand_1_ID  /= m1
+        cand_2_SOP /= m2
+        cand_2_SOP /= m2
+        
+        if cand_1_SOP > cand_2_SOP and cand_1_ID > cand_2_ID:
+            #cand_1_fully dominatent
+            return cand_1
+        if cand_2_SOP > cand_1_SOP and cand_2_ID > cand_1_ID:
+            #cand_2 fully domanent
+            return cand_2
+        if cand_1_SOP > cand_2_SOP:
+            return cand_1
+        if cand_2_SOP > cand_1_SOP:
+            return cand_2
+        if cand_1_ID > cand_2_ID:
+            return cand_1
+        if cand_2_ID > cand_1_ID:
+            return cand_2
+        return cand_1
+
+    def calc_dist(self,cand):
+        """
+            return the eculadian distiance of one point to every 
+            other point in the population
+        """
+        dist = np.array([(k,)+v for k, v in self.all_scores.iteritems()])
+        cand_score = np.tile(self.population[cand].fittness(), (len(dist),2))
+
+        dist[:,1:] -= cand_score
+        dist[:,1:] = dist[:,1:] ** 2
+
+        ans = np.zeros(len(dist[0]),float)
+        ans = np.sum(dist[:,1:],1)
+        ans = ans ** 0.5
+
+        sh = 0
+        for i, value in enumerate(ans):
+            if value > self.sigma_share:
+                sh += (1-(value self.sigma_share))
+        
+        return sh
+    
+
     def dominates(self,cand_1, cand_2):
         """
            Return 2 cand_1 fully dominates cand_2
@@ -70,7 +145,7 @@ class GA():
         """
         cand_1_SOP, cand_1_ID = self.population[cand_1].fittness()
         cand_2_SOP, cand_2_ID = self.population[cand_2].fittness()
-        
+
         # cand 1 fully dominates cand 2
         if cand_1_SOP > cand_2_SOP and cand_1_ID > cand_2_ID:
             return 2
@@ -85,7 +160,7 @@ class GA():
             return -1
         # thay are equal
         return 0
-        
+
     def gen_end(self):
         # end of generation 
         # keep the 50  candidates with the best sum-of-pairs
@@ -101,9 +176,9 @@ class GA():
             line.append(identity)
             line.append(cand)
             scores.append(line)
-        
-        sort_sums = sorted(scores, key = lambda x:(x[0],x[1]))
-        sort_identity = sorted(scores, key = lambda x:(x[1],x[0]))
+
+        sort_sums = sorted(scores,scores[0])
+        sort_identity = sorted(scores, scores[1])
         for i in range(50):
             new_pop[sort_sums[-i][2]] = self.population[sort_sums[-i][2]]
             new_pop[sort_identity[-i][2]] = self.population[sort_identity[-i][2]]
@@ -118,12 +193,15 @@ class GA():
         # read the sequence from file
         np_seq, seq_names = self.read_data()
         for i in range (self.pop_size):
-            
+
             # create an Alignment object with the data
             my_alig =  Alignment.Alignment(np_seq, seq_names)
             # append the alignment object to the pouplation list
             self.population[my_alig.id] = my_alig
-        self.start = copy.copy(self.population[0])    
+        self.population[1].print_seq()
+        print self.population[1].fittness()
+        self.start = copy.copy(self.population[1])
+
     def run(self):
         """ 
            run the GA
@@ -133,7 +211,7 @@ class GA():
                hold a tournment to decide which indiviuals I keep 
         """
         num_mutations = 20
-        num_crossovers = 10
+        num_crossovers = 20
 
         # set up the pouplation
         for gen_num in range(self.num_generations):
@@ -144,13 +222,13 @@ class GA():
                 self.population[pick_one].mutation()
 
             for i in range(num_crossovers):
-                
+
                 p1 = self.tournament()
                 p2 = self.tournament()
                 while p1 == p2:
                     p2 = self.tournament()
-                
-                    
+
+
                 cross_over = Crossover(self.population[p1],
                                        self.population[p2])
 
@@ -162,16 +240,6 @@ class GA():
                     self.population[child_2.id] = child_2
             self.gen_end()
 
-        scores = []
-        for candidate in self.population:
-            line = []
-            sum_of_pairs, identity = self.population[candidate].fittness()
-            line.append(sum_of_pairs)
-            line.append(identity)
-            scores.append(line)
-        
-        sort_sum = sorted(scores, key = lambda x:(x[0],x[1]))
-        sort_identity = sorted(scores, key = lambda x:(x[1],x[0]))
 
         for key in self.population:
             print "candidate ID", key
@@ -193,7 +261,7 @@ class GA():
         """ Read The sequences to be alinged. 
             BAliBASE set of aligments will be used to test algorithim
             the .rsf file format will be used 
-            
+
             This method Reads a .rsf file
             returns  a data structure with mutiple sequences
             Padded with spaces to be aligned.
@@ -236,11 +304,11 @@ class GA():
                 seq_str = ""
         # close the file
         openfile.close()
-        
+
         # Save the sequences in a numpy array for fast proccessing
         # make the array 25% lager to give room to add gaps
         np_seq = np.ones([len(seq_value), max_len*1.25], dtype= np.string_)
-        
+
         seq_length = len(seq_value[0])
         # go throught the list and add every char to np_seq
         # also replace . used in BAliBASE with - used for alinaiGA
@@ -260,17 +328,9 @@ class GA():
        alig_1 = self.population[0]
        alig_2 = self.population[1]
        alig_1.print_seq()
-       for i in range(10):
-           alig_1.mutation()
-       
-       alig_1.print_seq()
-       #alig_1.remove_gap_col()
-       print
-       alig_1.print_seq()
+       print alig_1.fittness()
 
-       
-       
-       
+
 my_ga = GA("1aho.rsf")
 #my_ga.test()
 my_ga.run()
