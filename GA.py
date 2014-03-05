@@ -8,8 +8,8 @@ from Crossover import Crossover
 from Scoring import Scoring
 
 class GA():
-    def __init__(self,path_to_data, pop_size=50, num_generations=1000,
-                 candidate_size = 2, comparison_size = 4, sigma_share = 3.14):
+    def __init__(self,path_to_data, pop_size=50, num_generations=500,
+                 candidate_size = 2, comparison_size = 6, sigma_share = 3.14):
         """ class that creates the the pouplation of alignments
             and keeps track of the number of generations
         """
@@ -22,8 +22,17 @@ class GA():
         self.candidate_size = candidate_size
         self.comparison_size = comparison_size
         self.sigma_share = sigma_share
-
-
+    
+    #@property
+    #def sigma_share(self):
+    #    """
+    #       Calculate the value of sigma_share, the radius which
+    #       repersents the size of the naighbiourhood 
+    #       
+    #    """
+    #    q = 4
+    #    inside = 
+    #    r 0.5*(()** 0.5
     def selection(self):
         """
            Select which candates are kept till the next generation
@@ -32,19 +41,21 @@ class GA():
         pass
     def tournament(self):
         """ 
-           run a tournament to select the best candation for mating
-           currently it returns the last candidate if there is a draw
-           TODO handbags at dawn if it is a tie
+           run a binary tournament to select the best candation for mating
+           retuens the ID of the best candidate
         """
         # randomly choose a candidate set and a comparsion set
         candidates = []
-        comparison_set = []
-        for i in range(self.candidate_size):
-            candidates.append(self.random_candidate())
+        cand_set = set()
+        comparison_set = set()
+        comparison = []
+        while len(cand_set) < self.candidate_size:
+            cand_set.add(self.random_candidate())
+        candidates = list(cand_set)
 
-        for i in range(self.comparison_size):
-            comparison_set.append(self.random_candidate())
-
+        while len(comparison_set) < self.comparison_size:
+            comparison_set.add(self.random_candidate())
+        comparison_set = list(comparison_set)
         candidate_score = {}
         total_score = 0
         for each in candidates:
@@ -52,21 +63,31 @@ class GA():
                 total_score += self.dominates(each,j)
             candidate_score[each] = total_score
             total_score = 0
+            
+        scores = []
+        for key, value in candidate_score.iteritems():
+            line = []
+            line.append(key)
+            line.append(value)
+            scores.append(line)
 
-        
-        high_score = 0
-        #TODO if one is best retuen it 
-        # else call share() on the best two
-        for each in candidates:
-            scores .append(candidate_score[each])
+        scores = sorted(scores, key = lambda x: (x[1],x[0]))
+        #print "len(scores)", len(scores)
+        #print scores
+        #print scores[-1][1], scores[-2][1]
 
-        scores.sort()
-        if scores[-1] == scores[-2]:
-            # there is a tie
-            return share(cand_1, cand_2)
+        if len(scores) == 1:
+            return scores[0][0]
+
+        elif scores[-1][1] == scores[-2][1]:
+            # they have the same score use sharing to reduce the fittness
+            #print scores[-1][0],scores[-2][0]
+            return self.share(scores[-1][0], scores[-2][0])
         else:
-            #one candidate is brtter
-            return 
+            # return the fittess candidate
+            return scores[-1][0]
+        print "Error"
+
     def share(self, cand_1, cand_2):
         """
            Handbags at Dawn
@@ -80,15 +101,14 @@ class GA():
         # calculate the fittness scores of all the population
         self.all_scores = {}
         for key in self.population:
-            self.all_scores[key] = self.population[keys]
-        
+            self.all_scores[key] = self.population[key]
         # get the values of the two candidates 
-        cand_1_SOP, cand_1_ID = self.all_scores[cand_1]
-        cand_1_SOP, cand_2_ID = self.all_scores[cand_2]
+        cand_1_SOP, cand_1_ID = self.all_scores[cand_1].fittness()
+        cand_2_SOP, cand_2_ID = self.all_scores[cand_2].fittness()
         
         # calculate the objective fittness of the soultions
-        m1 = calc_dist(cand_1)
-        m2 = calc_dist(cand_2)
+        m1 = self.calc_dist(cand_1)
+        m2 = self.calc_dist(cand_2)
         
         # reduce the fittness of the candidates
         cand_1_SOP /= m1
@@ -114,24 +134,47 @@ class GA():
 
     def calc_dist(self,cand):
         """
-            return the eculadian distiance of one point to every 
-            other point in the population
+            calculate the eculadian distiance of one point to every 
+            other point in the population.
+            Calculate the amount to reduce the fittness given how 
+            many other soultions reside in the candidates nearbioughood
+            
+            takes: The candidate ID number
+            retuens: A
         """
-        dist = np.array([(k,)+v for k, v in self.all_scores.iteritems()])
-        cand_score = np.tile(self.population[cand].fittness(), (len(dist),2))
-
+        fit_list = []
+        for key in self.population:
+            line = []
+            line.append(key)
+            SOP, ID = self.population[key].fittness()
+            line.append(SOP)
+            line.append(ID)
+            fit_list.append(line)
+        
+        dist = np.asarray(fit_list)
+        cand_score = np.tile(self.population[cand].fittness(), (len(dist),1))
+        #print cand_score
+        add_one = np.tile(1,(len(dist),1))
+        #print add_one.shape
+        cand_score[:,2:] += add_one
+        dist[:,2:] += add_one
+        #print dist[:,2:]
         dist[:,1:] -= cand_score
         dist[:,1:] = dist[:,1:] ** 2
 
         ans = np.zeros(len(dist[0]),float)
         ans = np.sum(dist[:,1:],1)
         ans = ans ** 0.5
-
+        #print ans
         sh = 0
+        count = 0
+        #print len(ans)
         for i, value in enumerate(ans):
-            if value > self.sigma_share:
-                sh += (1-(value self.sigma_share))
-        
+            #print "value", value
+            if value <= self.sigma_share:
+                count += 1
+                sh += (1-(value / self.sigma_share))
+        print count, " in the naibourhood"
         return sh
     
 
@@ -177,9 +220,10 @@ class GA():
             line.append(cand)
             scores.append(line)
 
-        sort_sums = sorted(scores,scores[0])
-        sort_identity = sorted(scores, scores[1])
-        for i in range(50):
+        #scores = sorted(scores, key = lambda x: (x[1],x[0]))
+        sort_sums = sorted(scores,key =lambda x: (x[0]))
+        sort_identity = sorted(scores,key = lambda x: (x[1]))
+        for i in range(25):
             new_pop[sort_sums[-i][2]] = self.population[sort_sums[-i][2]]
             new_pop[sort_identity[-i][2]] = self.population[sort_identity[-i][2]]
 
@@ -210,8 +254,8 @@ class GA():
                do some crossovers
                hold a tournment to decide which indiviuals I keep 
         """
-        num_mutations = 20
-        num_crossovers = 20
+        num_mutations = 5
+        num_crossovers = 10
 
         # set up the pouplation
         for gen_num in range(self.num_generations):
