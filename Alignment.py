@@ -17,8 +17,32 @@ class Alignment():
            Verifiy that another alignment is the same not including
            gaps
         """
-        for i, line in enumerate(self.np_alignment):
-            pass
+        # create a string of all the letters in the alignment 
+        # with no gaps these should be the same on both alignments
+        str_1 = ''
+        str_2 = ''
+        for line in self.np_alignment:
+            for value in line:
+                if value == '-' or value == '':
+                    pass
+                else:
+                    str_1 += value
+
+        for line in other_alignment.np_alignment:
+            for value in line:
+                if value == '-' or value == '':
+                    pass
+                else:
+                    str_2 += value
+        same = True
+        for value in enumerate(str_1):
+            if value == str_2[i]:
+                pass
+            else:
+                print "Error", value, "!=", str_2[i]
+                same = False
+        return same
+
     @property
     def last_start(self):
         """

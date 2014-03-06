@@ -167,14 +167,14 @@ class GA():
         ans = ans ** 0.5
         #print ans
         sh = 0
-        count = 0
+        #count = 0
         #print len(ans)
         for i, value in enumerate(ans):
             #print "value", value
             if value <= self.sigma_share:
-                count += 1
+                #count += 1
                 sh += (1-(value / self.sigma_share))
-        print count, " in the naibourhood"
+        #print count, " in the naibourhood"
         return sh
     
 
@@ -285,14 +285,30 @@ class GA():
             self.gen_end()
 
 
-        for key in self.population:
-            print "candidate ID", key
-            self.population[key].print_seq()
-            print self.population[key].fittness()
-            print len(self.population[key].np_alignment[0])
-        print
-        self.start.print_seq()
-        print self.start.fittness()
+        #for key in self.population:
+        #    print "candidate ID", key
+        #    self.population[key].print_seq()
+        #    print self.population[key].fittness()
+        #    print len(self.population[key].np_alignment[0])
+        scores = []
+        new_pop = {}
+        #for line in self.population:
+            #print line
+        for cand in self.population:
+            line = []
+            sum_of_pairs, identity = self.population[cand].fittness()
+            line.append(sum_of_pairs)
+            line.append(identity)
+            line.append(cand)
+            scores.append(line)
+
+        #scores = sorted(scores, key = lambda x: (x[1],x[0]))
+        sort_sums = sorted(scores,key =lambda x: (x[0]))
+        sort_identity = sorted(scores,key = lambda x: (x[1]))
+        print self.population[sort_sums[-1][2]].fittness()
+        self.population[sort_sums[-1][2]].print_seq()
+        print self.population[sort_identity[-1][2]].fittness()
+        self.population[sort_identity[-1][2]].print_seq()
     def random_candidate(self):
         """
            Return a random candidate ID
