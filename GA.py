@@ -8,8 +8,8 @@ from Crossover import Crossover
 from Scoring import Scoring
 
 class GA():
-    def __init__(self,path_to_data, pop_size=50, num_generations=500,
-                 candidate_size = 2, comparison_size = 6, sigma_share = 3.14):
+    def __init__(self,path_to_data, pop_size=25, num_generations=500,
+                 candidate_size = 2, comparison_size = 10, sigma_share = 3.14):
         """ class that creates the the pouplation of alignments
             and keeps track of the number of generations
         """
@@ -94,9 +94,6 @@ class GA():
            If there is a tie in the domination
            This function will reduce the fittness of candidates
            depending how many other candidats are in there neighborhood
-           sudo code
-           for ever candidate
-              calculate to
         """
         # calculate the fittness scores of all the population
         self.all_scores = {}
@@ -223,7 +220,7 @@ class GA():
         #scores = sorted(scores, key = lambda x: (x[1],x[0]))
         sort_sums = sorted(scores,key =lambda x: (x[0]))
         sort_identity = sorted(scores,key = lambda x: (x[1]))
-        for i in range(25):
+        for i in range(self.pop_size):
             new_pop[sort_sums[-i][2]] = self.population[sort_sums[-i][2]]
             new_pop[sort_identity[-i][2]] = self.population[sort_identity[-i][2]]
 
@@ -254,12 +251,15 @@ class GA():
                do some crossovers
                hold a tournment to decide which indiviuals I keep 
         """
-        num_mutations = 5
-        num_crossovers = 10
 
         # set up the pouplation
         for gen_num in range(self.num_generations):
-            print "gen_num", gen_num, "pop size", len(self.population)
+            #print "gen_num", gen_num, "pop size", len(self.population)
+            if gen_num % 50 == 0 and gen_num != 0:
+                #print fittness metreixs for reuslts section
+                self.print_fittness(gen_num)
+            num_mutations =  int(len(self.population) * .4)
+            num_crossovers = int(len(self.population) * .8)
             # preform the mutations
             for i in range(num_mutations):
                 pick_one = self.random_candidate()
@@ -309,6 +309,28 @@ class GA():
         self.population[sort_sums[-1][2]].print_seq()
         print self.population[sort_identity[-1][2]].fittness()
         self.population[sort_identity[-1][2]].print_seq()
+    def print_fittness(self, gen_num):
+        scores = []
+        new_pop = {}
+        #for line in self.population:
+            #print line
+        for cand in self.population:
+            line = []
+            sum_of_pairs, identity = self.population[cand].fittness()
+            line.append(sum_of_pairs)
+            line.append(identity)
+            line.append(cand)
+            scores.append(line)
+
+        #scores = sorted(scores, key = lambda x: (x[1],x[0]))
+        sort_sums = sorted(scores,key =lambda x: (x[0]))
+        sort_identity = sorted(scores,key = lambda x: (x[1]))
+
+        best_sums, other_ID =  self.population[sort_sums[-1][2]].fittness()
+        other_sums, best_ID =  self.population[sort_identity[-1][2]].fittness()
+        
+        print gen_num, ",", best_sums, ",", best_ID
+
     def random_candidate(self):
         """
            Return a random candidate ID

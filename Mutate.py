@@ -4,7 +4,7 @@ from random import randint
 import Alignment
 import copy
 
-
+smart_dir_prob = 50
 # A class to carry out mutations on the alignment
 class Mutate():
     """
@@ -12,7 +12,7 @@ class Mutate():
         Returns a mutated np_alignment data structour
     """
     def __init__(self, alignment, smart = True,  num_gaps = 1,
-                       smart_retry = 3, smart_dir_prob = 50):
+                       smart_retry = 3):
 
         self.obj = copy.copy(alignment)           # the alignment object to be mutated
         self.old_alignment = copy.copy(alignment)
@@ -21,7 +21,7 @@ class Mutate():
         #self.alignment = alignment.np_alignment     # the alignment to be mutated
         self.num_gaps = num_gaps               # the number of gaps to insert in gap_insertion()
         self.smart_retry = smart_retry # number of retrys used in smart operators
-        self.smart_dir_prob = smart_dir_prob
+        
         self.smart = smart
         self.choose_oper()
     
@@ -95,15 +95,15 @@ class Mutate():
         elif rand_num == 7:
             return self.smart_gap_insertion()
         
-    def gap_insertion(self,num_gaps = 1):
+    def gap_insertion(self,num_gaps = 10):
         """
            insert num_gaps number of gaps at a random possition
            in each row
         """
-        for i, line in enumerate(self.obj.np_alignment):
-            for j in range(num_gaps):
-                position = randint(0,self.obj.length)
-                self.__insert_gap(i, position)
+        for j in range(num_gaps):
+            row = randint(0,len(self.obj.np_alignment)-1)
+            col = randint(0, self.obj.length)
+            self.__insert_gap(row, col)
         return self.obj.np_alignment
 
     def gap_shift(self, all_lines = False):
@@ -346,7 +346,7 @@ class Mutate():
             return True
         return False
 
-    def smart_gap_insertion(self,smart_num_gaps = 1, attempts = 3):
+    def smart_gap_insertion(self,smart_num_gaps = 10, attempts = 3):
         """
            Choose a position at random insert a gap
            then insert a gap at the start or end of every other row
@@ -356,8 +356,9 @@ class Mutate():
            identity
         """
 
-
-        for trys in range(attempts):      
+        global smart_dir_prob
+        for trys in range(attempts): 
+            
             # choose a random position
             row = randint(0, len(self.obj.np_alignment)-1)
             col = randint(0, self.obj.length)
@@ -372,7 +373,7 @@ class Mutate():
             # it that gaps are inserted at the start of the sequence
 
             start_or_end = randint(1,100)
-            if start_or_end <= self.smart_dir_prob:
+            if start_or_end <= smart_dir_prob:
                 #add the gaps at the start
                 start = True
             else:
@@ -398,9 +399,9 @@ class Mutate():
                 # last time we placed gaps at the start 
                 # we have droped that so subtract 1 from smart_dir_prob
                 # so next time it will be more likely to add gaps at the end
-                self.smart_dir_prob -= 1
+                smart_dir_prob -= 1
             else:
-                self.smart_dir_prob +=1
+                smart_dir_prob +=1
         # do not return any value set the self.alignment to old_alignment
         return self.old_alignment.np_alignment
 
@@ -411,6 +412,7 @@ class Mutate():
            TODO This can get an IndexError if I Try to shift a gap 
            near the end NEED to fix this
         """
+        global smart_dir_prob
         # Choose a gap at random and try moving to to the
         # left and right a random number of time between 
         # 3 and 10 
@@ -456,7 +458,7 @@ class Mutate():
                 # choose a direction using smart_dir_prob
                 left_or_right = randint(1,100)
 
-                if left_or_right <= self.smart_dir_prob:
+                if left_or_right <= smart_dir_prob:
                     #add the gaps to the left
                     left = True
                 else:
@@ -488,9 +490,9 @@ class Mutate():
                 else:
                     #  adjest probility of moving left or right
                     if left:
-                        self.smart_dir_prob -= 1
+                        smart_dir_prob -= 1
                     else:
-                        self.smart_dir_prob += 1
+                        smart_dir_prob += 1
                     # 
                     self.obj.np_alignment = self.old_alignment.np_alignment.copy()
         return self.old_alignment.np_alignment
