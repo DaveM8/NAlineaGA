@@ -8,7 +8,7 @@ from Crossover import Crossover
 from Scoring import Scoring
 
 class GA():
-    def __init__(self,path_to_data, pop_size=25, num_generations=500,
+    def __init__(self,path_to_data, pop_size=500, num_generations=100,
                  candidate_size = 2, comparison_size = 10, sigma_share = 3.14):
         """ class that creates the the pouplation of alignments
             and keeps track of the number of generations
@@ -220,7 +220,7 @@ class GA():
         #scores = sorted(scores, key = lambda x: (x[1],x[0]))
         sort_sums = sorted(scores,key =lambda x: (x[0]))
         sort_identity = sorted(scores,key = lambda x: (x[1]))
-        for i in range(self.pop_size):
+        for i in range(250):
             new_pop[sort_sums[-i][2]] = self.population[sort_sums[-i][2]]
             new_pop[sort_identity[-i][2]] = self.population[sort_identity[-i][2]]
 
