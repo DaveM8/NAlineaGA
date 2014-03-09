@@ -9,7 +9,7 @@ from Scoring import Scoring
 
 class GA():
     def __init__(self,path_to_data, pop_size=20, num_generations=500,
-                 candidate_size = 2, comparison_size = 10, sigma_share = 3.14):
+                 candidate_size = 2, comparison_size = 10, sigma_share = 13.14):
         """ class that creates the the pouplation of alignments
             and keeps track of the number of generations
         """
@@ -415,6 +415,6 @@ class GA():
        print alig_1.fittness()
 
 
-my_ga = GA("results/1hpi.rsf")
+my_ga = GA("1aho.rsf")
 #my_ga.test()
 my_ga.run()
