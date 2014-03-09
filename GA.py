@@ -1,6 +1,7 @@
 import numpy as np
 from random import randint
 import copy
+import math
 
 import Alignment
 import Mutate
@@ -8,8 +9,8 @@ from Crossover import Crossover
 from Scoring import Scoring
 
 class GA():
-    def __init__(self,path_to_data, pop_size=500, num_generations=100,
-                 candidate_size = 2, comparison_size = 10, sigma_share = 3.14):
+    def __init__(self,path_to_data, pop_size=20, num_generations=500,
+                 candidate_size = 2, comparison_size = 10):
         """ class that creates the the pouplation of alignments
             and keeps track of the number of generations
         """
@@ -21,18 +22,33 @@ class GA():
         self.create_population()
         self.candidate_size = candidate_size
         self.comparison_size = comparison_size
-        self.sigma_share = sigma_share
+        self.sigma_share = 0
     
-    #@property
-    #def sigma_share(self):
-    #    """
-    #       Calculate the value of sigma_share, the radius which
-    #       repersents the size of the naighbiourhood 
-    #       
-    #    """
-    #    q = 4
-    #    inside = 
-    #    r 0.5*(()** 0.5
+    def calc_sigma_share(self):
+        """
+           Calculate the value of sigma_share, the radius which
+           repersents the size of the naighbiourhood 
+           
+        """
+        q = 4
+        SOP = []
+        ID = []
+        for key in self.population:
+            sum_of_pairs, identity = self.population[key].fittness()
+            SOP.append(sum_of_pairs)
+            ID.append(identity)
+        
+        max_min = 0
+        max_min += (max(SOP) - abs(min(SOP))) ** 2
+        max_min += (max(ID) - abs(min(ID))) ** 2
+
+        r = (max_min ** 0.5) * 0.5
+        
+        share = float(r) / (q ** .5)
+        #print share
+        if share == 0:
+            share = 3.14
+        return share
     def selection(self):
         """
            Select which candates are kept till the next generation
@@ -137,9 +153,11 @@ class GA():
             many other soultions reside in the candidates nearbioughood
             
             takes: The candidate ID number
-            retuens: A
+            retuens: A multipler to reduce the fittnes of the candidate passed in
         """
+        self.sigma_share = self.calc_sigma_share()
         fit_list = []
+        #print "current pop_size", len(self.population)
         for key in self.population:
             line = []
             line.append(key)
@@ -164,12 +182,12 @@ class GA():
         ans = ans ** 0.5
         #print ans
         sh = 0
-        #count = 0
-        #print len(ans)
+        count = 0
+        #print "len(ans)",  len(ans)
         for i, value in enumerate(ans):
             #print "value", value
             if value <= self.sigma_share:
-                #count += 1
+                count += 1
                 sh += (1-(value / self.sigma_share))
         #print count, " in the naibourhood"
         return sh
@@ -220,7 +238,7 @@ class GA():
         #scores = sorted(scores, key = lambda x: (x[1],x[0]))
         sort_sums = sorted(scores,key =lambda x: (x[0]))
         sort_identity = sorted(scores,key = lambda x: (x[1]))
-        for i in range(250):
+        for i in range(10):
             new_pop[sort_sums[-i][2]] = self.population[sort_sums[-i][2]]
             new_pop[sort_identity[-i][2]] = self.population[sort_identity[-i][2]]
 
@@ -254,7 +272,8 @@ class GA():
 
         # set up the pouplation
         for gen_num in range(self.num_generations):
-            #print "gen_num", gen_num, "pop size", len(self.population)
+           
+            print "gen_num", gen_num, "pop size", len(self.population)
             if gen_num % 50 == 0 and gen_num != 0:
                 #print fittness metreixs for reuslts section
                 self.print_fittness(gen_num)
