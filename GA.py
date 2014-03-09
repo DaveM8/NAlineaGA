@@ -8,7 +8,7 @@ from Crossover import Crossover
 from Scoring import Scoring
 
 class GA():
-    def __init__(self,path_to_data, pop_size=500, num_generations=100,
+    def __init__(self,path_to_data, pop_size=20, num_generations=500,
                  candidate_size = 2, comparison_size = 10, sigma_share = 3.14):
         """ class that creates the the pouplation of alignments
             and keeps track of the number of generations
@@ -56,6 +56,8 @@ class GA():
         while len(comparison_set) < self.comparison_size:
             comparison_set.add(self.random_candidate())
         comparison_set = list(comparison_set)
+
+
         candidate_score = {}
         total_score = 0
         for each in candidates:
@@ -220,7 +222,7 @@ class GA():
         #scores = sorted(scores, key = lambda x: (x[1],x[0]))
         sort_sums = sorted(scores,key =lambda x: (x[0]))
         sort_identity = sorted(scores,key = lambda x: (x[1]))
-        for i in range(250):
+        for i in range(10):
             new_pop[sort_sums[-i][2]] = self.population[sort_sums[-i][2]]
             new_pop[sort_identity[-i][2]] = self.population[sort_identity[-i][2]]
 
@@ -413,6 +415,6 @@ class GA():
        print alig_1.fittness()
 
 
-my_ga = GA("1aho.rsf")
+my_ga = GA("results/1hpi.rsf")
 #my_ga.test()
 my_ga.run()
