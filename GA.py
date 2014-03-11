@@ -322,7 +322,9 @@ class GA():
         result_file = file_name + "_results.csv"
         # open the file for appending
         open_file = open(result_file, 'a')
-        file_line = gen_num + "," + best_sums + "," + best_ID + '\n'
+        file_line = str(gen_num) + "," + str(best_sums) + "," + str(best_ID) + '\n'
+        open_file.write(file_line)
+        print gen_num, best_sums, best_ID
         open_file.close()
 
     def random_candidate(self):
