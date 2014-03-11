@@ -9,7 +9,7 @@ from Scoring import Scoring
 
 class GA():
     def __init__(self,path_to_data, pop_size=20, num_generations=500,
-                 candidate_size = 2, comparison_size = 10, sigma_share = 13.14):
+                 candidate_size = 2, comparison_size = 10, sigma_share = 3.14):
         """ class that creates the the pouplation of alignments
             and keeps track of the number of generations
         """
@@ -109,27 +109,16 @@ class GA():
         m1 = self.calc_dist(cand_1)
         m2 = self.calc_dist(cand_2)
         
-        # reduce the fittness of the candidates
-        cand_1_SOP /= m1
-        cand_1_ID  /= m1
-        cand_2_SOP /= m2
-        cand_2_SOP /= m2
-        
-        if cand_1_SOP > cand_2_SOP and cand_1_ID > cand_2_ID:
-            #cand_1_fully dominatent
+        if m1 > m2:
             return cand_1
-        if cand_2_SOP > cand_1_SOP and cand_2_ID > cand_1_ID:
-            #cand_2 fully domanent
-            return cand_2
-        if cand_1_SOP > cand_2_SOP:
+        elif m2 > m1:
             return cand_1
-        if cand_2_SOP > cand_1_SOP:
-            return cand_2
-        if cand_1_ID > cand_2_ID:
-            return cand_1
-        if cand_2_ID > cand_1_ID:
-            return cand_2
-        return cand_1
+        else:
+            which = randint(1,2)
+            if which == 1:
+                return cand_1
+            else:
+                return cand_2
 
     def calc_dist(self,cand):
         """
@@ -204,9 +193,7 @@ class GA():
         return 0
 
     def gen_end(self):
-        # end of generation 
-        # keep the 50  candidates with the best sum-of-pairs
-        # keep the 
+
         scores = []
         new_pop = {}
         #for line in self.population:
@@ -312,6 +299,7 @@ class GA():
         print self.population[sort_identity[-1][2]].fittness()
         self.population[sort_identity[-1][2]].print_seq()
     def print_fittness(self, gen_num):
+        global file_name 
         scores = []
         new_pop = {}
         #for line in self.population:
@@ -331,7 +319,11 @@ class GA():
         best_sums, other_ID =  self.population[sort_sums[-1][2]].fittness()
         other_sums, best_ID =  self.population[sort_identity[-1][2]].fittness()
         
-        print gen_num, ",", best_sums, ",", best_ID
+        result_file = file_name + "_results.csv"
+        # open the file for appending
+        open_file = open(result_file, 'a')
+        file_line = gen_num + "," + best_sums + "," + best_ID + '\n'
+        open_file.close()
 
     def random_candidate(self):
         """
@@ -414,7 +406,7 @@ class GA():
        alig_1.print_seq()
        print alig_1.fittness()
 
-
+file_name = 'results/1fjlA'
 my_ga = GA("1aho.rsf")
 #my_ga.test()
 my_ga.run()

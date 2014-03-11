@@ -71,7 +71,6 @@ class Mutate():
                 self.obj.np_alignment[row][-1] = '-'
                 
         except TypeError:
-            print "col", col
             return self.old_alignment.np_alignment
     def choose_oper(self):
         """
@@ -92,7 +91,7 @@ class Mutate():
             return self.smart_gap_shift()
         elif rand_num == 6:
             return self.smart_gap_merge()
-        elif rand_num == 7:
+        elif rand_num ==7:
             return self.smart_gap_insertion()
         
     def gap_insertion(self,num_gaps = 10):
@@ -100,7 +99,8 @@ class Mutate():
            insert num_gaps number of gaps at a random possition
            in each row
         """
-        for j in range(num_gaps):
+        gaps = randint(1, num_gaps)
+        for j in range(gaps):
             row = randint(0,len(self.obj.np_alignment)-1)
             col = randint(0, self.obj.length)
             self.__insert_gap(row, col)
