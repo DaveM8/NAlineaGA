@@ -244,7 +244,7 @@ class GA():
         # set up the pouplation
         for gen_num in range(self.num_generations):
             #print "gen_num", gen_num, "pop size", len(self.population)
-            if gen_num % 50 == 0 and gen_num != 0:
+            if (gen_num % 50 == 0 and gen_num != 0) or gen_num == self.num_generations-1:
                 #print fittness metreixs for reuslts section
                 self.print_fittness(gen_num)
             num_mutations =  int(len(self.population) * .4)
@@ -281,8 +281,6 @@ class GA():
         #    print len(self.population[key].np_alignment[0])
         scores = []
         new_pop = {}
-        #for line in self.population:
-            #print line
         for cand in self.population:
             line = []
             sum_of_pairs, identity = self.population[cand].fittness()
@@ -294,10 +292,13 @@ class GA():
         #scores = sorted(scores, key = lambda x: (x[1],x[0]))
         sort_sums = sorted(scores,key =lambda x: (x[0]))
         sort_identity = sorted(scores,key = lambda x: (x[1]))
+
         print self.population[sort_sums[-1][2]].fittness()
         self.population[sort_sums[-1][2]].print_seq()
+
         print self.population[sort_identity[-1][2]].fittness()
         self.population[sort_identity[-1][2]].print_seq()
+
     def print_fittness(self, gen_num):
         global file_name 
         scores = []
@@ -407,6 +408,9 @@ class GA():
        alig_2 = self.population[1]
        alig_1.print_seq()
        print alig_1.fittness()
+       alig_1.mutation()
+       alig_1.print_seq()
+
 
 file_name = 'results/1fjlA'
 my_ga = GA("1aho.rsf")

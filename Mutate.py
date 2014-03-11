@@ -76,7 +76,7 @@ class Mutate():
         """
             randomly choose which if any operator is used on the alignment 
         """
-        rand_num = randint(1,7)
+        rand_num = randint(1,8)
     
         if rand_num == 1:
             return self.gap_insertion()
@@ -93,6 +93,8 @@ class Mutate():
             return self.smart_gap_merge()
         elif rand_num ==7:
             return self.smart_gap_insertion()
+        elif rand_num == 8:
+            return self.gap_remove()
         
     def gap_insertion(self,num_gaps = 10):
         """
@@ -105,7 +107,26 @@ class Mutate():
             col = randint(0, self.obj.length)
             self.__insert_gap(row, col)
         return self.obj.np_alignment
+    
+    def gap_remove(self):
+        """
+           Remove a random gap from a line
+        """
+        # choose a row at random
+        row = randint(0, len(self.obj.np_alignment)-1)
+         #count the gaps on the row
+        num_of_gaps = 0
+        for i in range (0, self.obj.length+1):
+            if self.obj.np_alignment[row][i] == '-':
+                num_of_gaps += 1
+        # randomly choose one of the gaps
+        gap_to_remove = randint(0,num_of_gaps)
 
+        gap_index = self.__find_gap_index(row, gap_to_remove)
+
+        self.__close_gap(row, [gap_index])
+        return self.obj.np_alignment
+        
     def gap_shift(self, all_lines = False):
         """
            randomly choose a gap and move it to another position
@@ -307,9 +328,7 @@ class Mutate():
         """
            Finds the index of a numbered gap
 
-           TODO Fix bug it is possible for this not to return a value
-           Then the index is set to None in the program
-           leading to a crash
+           
         """
         #print "In __find_gap_index", row, gap_num
         gap_count = 0

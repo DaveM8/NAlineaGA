@@ -146,6 +146,7 @@ class Alignment():
         """
         mu = Mutate(self)
         self.np_alignment = mu.choose_oper()
+        #self.np_alignment = mu.gap_remove()
         self.remove_gap_col()
 
     def remove_gap_col(self):
