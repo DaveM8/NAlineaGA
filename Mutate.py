@@ -11,8 +11,7 @@ class Mutate():
         Provide matation operators
         Returns a mutated np_alignment data structour
     """
-    def __init__(self, alignment, smart = True,  num_gaps = 1,
-                       smart_retry = 3):
+    def __init__(self, alignment, num_gaps = 1, smart_retry = 3):
 
         self.obj = copy.copy(alignment)           # the alignment object to be mutated
         self.old_alignment = copy.copy(alignment)
@@ -21,15 +20,15 @@ class Mutate():
         #self.alignment = alignment.np_alignment     # the alignment to be mutated
         self.num_gaps = num_gaps               # the number of gaps to insert in gap_insertion()
         self.smart_retry = smart_retry # number of retrys used in smart operators
-        
-        self.smart = smart
+        self.num_gaps = num_gaps
+        #self.smart = smart
         self.choose_oper()
     
     def __insert_gap(self, row, col):
         """
            take care of inserting a gap in an alignment
            at position row, col
-           TODO insert checks to mke sure 
+           TODO insert checks to make sure 
            1. That values do not cause an over flow
            2. That values are not None
            This also applys to __close gap
@@ -41,12 +40,18 @@ class Mutate():
             # the last line is not a gap
             #return
         # make a copy of the rest of the row droping the last '-'
-        rest_of_col = self.obj.np_alignment[row][col:-1].copy()
-        #insert a gap '-'
-        self.obj.np_alignment[row][col] = '-'
-        # put the rest of the row back after the gap '-'
-        self.obj.np_alignment[row][col+1:] = rest_of_col
-
+        if self.obj.np_alignment[row][-1] == '-' or self.obj.np_alignment[row][-1] == '':
+            #only insert a gap the last value is a gap '-' 
+            rest_of_col = self.obj.np_alignment[row][col:-1].copy()
+            #insert a gap '-'
+            self.obj.np_alignment[row][col] = '-'
+            # put the rest of the row back after the gap '-'
+            self.obj.np_alignment[row][col+1:] = rest_of_col
+        else:
+            # the last col is not a gap or a blakk
+            # do not insert the gap as it will invalidate the sequence
+            # because we would lose the last value
+            pass
 
     def __close_gap(self, row, cols):
         """
@@ -96,12 +101,12 @@ class Mutate():
         elif rand_num == 8:
             return self.gap_remove()
         
-    def gap_insertion(self,num_gaps = 10):
+    def gap_insertion(self,max_gaps = 10):
         """
            insert num_gaps number of gaps at a random possition
            in each row
         """
-        gaps = randint(1, num_gaps)
+        gaps = randint(1, max_gaps)
         for j in range(gaps):
             row = randint(0,len(self.obj.np_alignment)-1)
             col = randint(0, self.obj.length)

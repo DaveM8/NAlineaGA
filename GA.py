@@ -226,6 +226,10 @@ class GA():
 
             # create an Alignment object with the data
             my_alig =  Alignment.Alignment(np_seq, seq_names)
+            # insert between 0 and 25 % of the length number of gaps
+            mu = Mutate.Mutate(my_alig)
+            num_gaps = randint(1, int(my_alig.length * 0.15))
+            my_alig.np_alignment = mu.gap_insertion(num_gaps)
             # append the alignment object to the pouplation list
             self.population[my_alig.id] = my_alig
         self.population[1].print_seq()
