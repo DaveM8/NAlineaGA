@@ -9,11 +9,10 @@ from Scoring import Scoring
 
 class GA():
     def __init__(self,path_to_data, pop_size=20, num_generations=500,
-                 candidate_size = 2, comparison_size = 10, sigma_share = 3.14):
+                 candidate_size = 2, comparison_size = 6, sigma_share = 3.14):
         """ class that creates the the pouplation of alignments
             and keeps track of the number of generations
         """
-        self.gen_passed = 0
         self.pop_size = pop_size
         self.num_generations = num_generations
         self.data_file = path_to_data
@@ -108,7 +107,7 @@ class GA():
         # calculate the objective fittness of the soultions
         m1 = self.calc_dist(cand_1)
         m2 = self.calc_dist(cand_2)
-        
+
         if m1 > m2:
             return cand_1
         elif m2 > m1:
@@ -126,7 +125,7 @@ class GA():
             other point in the population.
             Calculate the amount to reduce the fittness given how 
             many other soultions reside in the candidates nearbioughood
-            
+
             takes: The candidate ID number
             retuens: A
         """
@@ -138,7 +137,7 @@ class GA():
             line.append(SOP)
             line.append(ID)
             fit_list.append(line)
-        
+
         dist = np.asarray(fit_list)
         cand_score = np.tile(self.population[cand].fittness(), (len(dist),1))
         #print cand_score
@@ -164,7 +163,7 @@ class GA():
                 sh += (1-(value / self.sigma_share))
         #print count, " in the naibourhood"
         return sh
-    
+
 
     def dominates(self,cand_1, cand_2):
         """
@@ -226,15 +225,17 @@ class GA():
 
             # create an Alignment object with the data
             my_alig =  Alignment.Alignment(np_seq, seq_names)
-            # insert between 0 and 25 % of the length number of gaps
-            mu = Mutate.Mutate(my_alig)
-            num_gaps = randint(1, int(my_alig.length * 0.15))
-            my_alig.np_alignment = mu.gap_insertion(num_gaps)
+            # keep one copy of the original mutation
+            if i != 0:
+            # insert between 0 and 15 % of the length number of gaps
+                mu = Mutate.Mutate(my_alig)
+                num_gaps = randint(1, int(my_alig.length * 0.15))
+                my_alig.np_alignment = mu.gap_insertion(num_gaps)
             # append the alignment object to the pouplation list
             self.population[my_alig.id] = my_alig
-        self.population[1].print_seq()
-        print self.population[1].fittness()
-        self.start = copy.copy(self.population[1])
+        self.population[0].print_seq()
+        print self.population[0].fittness()
+        #self.start = copy.copy(self.population[0])
 
     def run(self):
         """ 
@@ -244,11 +245,10 @@ class GA():
                do some crossovers
                hold a tournment to decide which indiviuals I keep 
         """
-
         # set up the pouplation
         for gen_num in range(self.num_generations):
             #print "gen_num", gen_num, "pop size", len(self.population)
-            if (gen_num % 50 == 0 and gen_num != 0) or gen_num == self.num_generations-1:
+            if (gen_num % 50 == 0) or gen_num == self.num_generations-1:
                 #print fittness metreixs for reuslts section
                 self.print_fittness(gen_num)
             num_mutations =  int(len(self.population) * .4)
@@ -323,7 +323,7 @@ class GA():
 
         best_sums, other_ID =  self.population[sort_sums[-1][2]].fittness()
         other_sums, best_ID =  self.population[sort_identity[-1][2]].fittness()
-        
+
         result_file = file_name + "_results.csv"
         # open the file for appending
         open_file = open(result_file, 'a')
@@ -347,7 +347,7 @@ class GA():
 
             This method Reads a .rsf file
             returns  a data structure with mutiple sequences
-            Padded with spaces to be aligned.
+            Padded with spaces.
         """
         openfile = open(self.data_file, "r")
 
@@ -417,6 +417,6 @@ class GA():
 
 
 file_name = 'results/1fjlA'
-my_ga = GA("1aho.rsf")
+my_ga = GA("results/1fjlA.rsf")
 #my_ga.test()
 my_ga.run()
