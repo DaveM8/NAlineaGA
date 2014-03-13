@@ -438,7 +438,7 @@ class Mutate():
         """
         global smart_dir_prob
         # Choose a gap at random and try moving to to the
-        # left and right a random number of time between 
+        # left and right a random number of times between 
         # 3 and 10 
         # try to do this 3 times with different gaps
         # if a better alignment is found stop and keep the new alignment

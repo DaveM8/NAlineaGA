@@ -416,7 +416,7 @@ class GA():
        alig_1.print_seq()
 
 
-file_name = 'results/1fjlA'
-my_ga = GA("results/1fjlA.rsf")
+file_name = 'results/1pfc'
+my_ga = GA("results/1pfc.rsf")
 #my_ga.test()
 my_ga.run()
