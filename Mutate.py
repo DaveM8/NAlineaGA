@@ -15,33 +15,22 @@ class Mutate():
 
         self.obj = copy.copy(alignment)           # the alignment object to be mutated
         self.old_alignment = copy.copy(alignment)
-
-        #self.length = alignment.length
-        #self.alignment = alignment.np_alignment     # the alignment to be mutated
-        self.num_gaps = num_gaps               # the number of gaps to insert in gap_insertion()
-        self.smart_retry = smart_retry # number of retrys used in smart operators
+        self.num_gaps = num_gaps                  # the number of gaps to insert in gap_insertion()
+        self.smart_retry = smart_retry            # number of retrys used in smart operators
         self.num_gaps = num_gaps
-        #self.smart = smart
-        self.choose_oper()
+        #self.choose_oper()
     
     def __insert_gap(self, row, col):
         """
            take care of inserting a gap in an alignment
            at position row, col
-           TODO insert checks to make sure 
-           1. That values do not cause an over flow
-           2. That values are not None
-           This also applys to __close gap
-           I'll look up try->catch and assert
 
         """
         #print "Inserting gap at", row, col
-        #if self.alignment[row][-1] != '-':
-            # the last line is not a gap
-            #return
-        # make a copy of the rest of the row droping the last '-'
+        
         if self.obj.np_alignment[row][-1] == '-' or self.obj.np_alignment[row][-1] == '':
-            #only insert a gap the last value is a gap '-' 
+            #only insert a gap the last value is a gap '-'
+            # make a copy of the rest of the row droping the last '-'
             rest_of_col = self.obj.np_alignment[row][col:-1].copy()
             #insert a gap '-'
             self.obj.np_alignment[row][col] = '-'
@@ -195,11 +184,10 @@ class Mutate():
            Maybe when i randomly select a gap check if it is in a ajacent block
            and if it is merge the two or three adjenct blocks.
            
-           NOTE when removing 2 gaps if the randomly selected gap is the first or last 
+           NOTE when moving 2 gaps if the randomly selected gap is the first or last 
            it will be mearged with a gap at the start for the last or the end for last
            
-           But when removing 3 gaps the 3 gaps will always be at the same end
-           Maybe I'll change this later
+           But when moving 3 gaps the 3 gaps will always be at the same end
         """
 
         # create a list of all the rows or just one 
@@ -216,7 +204,6 @@ class Mutate():
         for row in rows:
             # count the number of gaps. the first will be zero
             num_of_gaps = -1
-            # whatch that -1 it was a + 1
             for i in range(0,self.obj.length-1):
                 if self.obj.np_alignment[row][i] == '-':
                     num_of_gaps += 1
@@ -335,7 +322,6 @@ class Mutate():
 
            
         """
-        #print "In __find_gap_index", row, gap_num
         gap_count = 0
         for i, value in enumerate(self.obj.np_alignment[row]):
             #count the gaps to find our randomly choosen gap
@@ -344,7 +330,6 @@ class Mutate():
                 if gap_count == gap_num:
                     return i
                 gap_count += 1
-        # what to do if I dont find the index of the gap
     def __better_alignment(self):
         """
            evaluate if an alignment is better that another
@@ -390,7 +375,7 @@ class Mutate():
             # insert a gap in the random position
             self.__insert_gap(row, col)
             # choose a side to insert the gaps in the other rows
-            # each generation it starts at 5 
+            # each generation it starts at 50 
             # if the mutation improves the alignment 1 is added
             # if the mutation makes the alignment worst 1 is subtracted
             # the higher the value of smart_dir_prob the more lickily
@@ -426,16 +411,14 @@ class Mutate():
                 smart_dir_prob -= 1
             else:
                 smart_dir_prob +=1
-        # do not return any value set the self.alignment to old_alignment
+        # do not return  old_alignment
         return self.old_alignment.np_alignment
 
     def smart_gap_shift(self, attempts = 3):
         """
            choose a gap at random and move it in a random direction
-
-           TODO This can get an IndexError if I Try to shift a gap 
-           near the end NEED to fix this
         """
+
         global smart_dir_prob
         # Choose a gap at random and try moving to to the
         # left and right a random number of times between 

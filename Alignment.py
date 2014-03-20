@@ -5,7 +5,9 @@ import numpy as np
 number = 0
 class Alignment():
     def __init__(self, np_alignment, names):
-        """Set up the object to pre form an aligment"""
+        """
+           Set up the object to preform an aligment
+        """
         global number
         self.np_alignment = np_alignment
         self.names = names
@@ -139,6 +141,7 @@ class Alignment():
         self.score_identity = score.identity()
 
         return self.score_of_pairs, self.score_identity
+
     def mutation(self, smart = True):
         """ preform one of the six mutations at random 
             on the aligment. by pasing the data to a
@@ -146,7 +149,6 @@ class Alignment():
         """
         mu = Mutate(self)
         self.np_alignment = mu.choose_oper()
-        #self.np_alignment = mu.gap_remove()
         self.remove_gap_col()
 
     def remove_gap_col(self):
