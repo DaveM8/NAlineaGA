@@ -102,8 +102,6 @@ class Crossover():
 
 
             # create a new alignment to return
-            #np_child_1 = np.asarray(child_1, dtype = np.string_)
-            #np_child_2 = np.asarray(child_2, dtype = np.string_)
             child_alignment_1 = Alignment.Alignment(child_1, self.p1.names)
             child_alignment_2 = Alignment.Alignment(child_2, self.p2.names)
 
@@ -128,7 +126,7 @@ class Crossover():
         # find out the number of rows
         num_rows = len(self.p1.np_alignment)
         # choose a crossover point
-        # use 1 and num_rows-1 so the crossover point in inbetween two rows
+        # use 1 and num_rows-1 so the crossover point is in between two rows
         cross_point = randint(1,num_rows-1)
         p1_child = self.p2.np_alignment.copy()
         p2_child = self.p1.np_alignment.copy()
@@ -225,7 +223,7 @@ class Crossover():
 
     def __match_the_col(self, p1, p2, which_col):
         """
-           Do the work of matching a colume in an alignment
+           Do the work of matching a column in an alignment
         """
         
         try:
@@ -282,4 +280,3 @@ class Crossover():
         alignment.np_alignment[row][col] = '-'
         # put the rest of the row back after the gap '-'
         alignment.np_alignment[row][col+1:] = rest_of_col
-
