@@ -1,0 +1,31 @@
+NAlineaGA
+A gentic algorithm for multiple sequence alignment witten in python.
+Based on 
+da Silva, F. J. M.J., Pérez, J. M. S.M., Pulido, J. A. G.A., and Rodríguez, M. V.A. (2011). Parallel niche pareto AlineaGA-an evolutionary multiobjective approach on multiple sequence alignment. Journal of integrative bioinformatics, 8(3).
+
+needs improving of the niche pareto part
+sigma_share the value that determines the size of the niche around
+every indivual is hard codec to 3.14 there is a branch with a function
+calc_sigma_share which implements the methode used in the above paper
+but did not give good results. Every individul was in every niche
+difites the puropuse of a niching system.
+I think it may be because there is such a big differenct between the 
+sum of pairs and identity sop could be 1000+ and identity never gose above 12
+Also the large range of sop may cause problems -2000 +1000.
+thats in the pareto branch.
+
+The file GA.py is the starting point
+Create a GA object wiht the path to a .rsf file as the parameter
+my_GA = GA.GA('mypath/myfile.rsf')
+And run
+
+my_GA.run()
+
+Alot of the parameters are controled from GA.py
+Crossover.py has some adjustible parmaters you can change 
+As with Mutate.py
+
+David Morrisroe
+pizzadave108 at gmail.com
+2014-13-03
+ 

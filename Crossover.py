@@ -18,9 +18,6 @@ class Crossover():
         self.p2 = copy.copy(alignment2)
         self.old_1 = copy.copy(alignment1)
         self.old_2 = copy.copy(alignment2)
-        #make copys of the original seqences
-        #self.p1_alignment = self.p1.np_alignment.copy()
-        #self.p2_alignment = self.p2.np_alignment.copy()
 
     def run(self):
         """
@@ -45,7 +42,7 @@ class Crossover():
            Because the order of the alignments must remain the same
            I count the number of letters not including the gaps on
            the left side of one of the parents, then to get the
-           index to cut the other parent at count the same number
+           index to cut the other parent at, count the same number
            of letters again not including gaps this gives the correct
            index to cut and create the correct child alignments
            with the correct sequences.
@@ -87,6 +84,7 @@ class Crossover():
 
             # use the correct indexs to create the two child alignments
             for i in range(len(self.p1.np_alignment)):
+                # TODO this is very inefficent need to improve it
 
                 child_1_left = self.p1.np_alignment[i,:split_col].copy()
                 child_2_left = self.p2.np_alignment[i,:p2_index[i]].copy()
@@ -104,8 +102,6 @@ class Crossover():
 
 
             # create a new alignment to return
-            #np_child_1 = np.asarray(child_1, dtype = np.string_)
-            #np_child_2 = np.asarray(child_2, dtype = np.string_)
             child_alignment_1 = Alignment.Alignment(child_1, self.p1.names)
             child_alignment_2 = Alignment.Alignment(child_2, self.p2.names)
 
@@ -114,11 +110,9 @@ class Crossover():
 
             return (child_alignment_1, child_alignment_2)
         except IndexError:
-            #it is possibl that an alignment acan become invalad
-            # iif this happens then is becomes impossible
+            # it is possibl that an alignment acan become invalad
+            # if this happens then is becomes impossible
             # to do an accurete vertical split
-            # catch IndexError
-            #print "IndexError in Crossover.vertical"
             return None, None
 
             
@@ -132,18 +126,16 @@ class Crossover():
         # find out the number of rows
         num_rows = len(self.p1.np_alignment)
         # choose a crossover point
-        # use 1 and num_rows-1 so the crossover point in inbetween two rows
+        # use 1 and num_rows-1 so the crossover point is in between two rows
         cross_point = randint(1,num_rows-1)
         p1_child = self.p2.np_alignment.copy()
         p2_child = self.p1.np_alignment.copy()
-        #print "cross_point ==", cross_point
         # replace all the lines after the crossover point with lines from p2
         for i in range(cross_point):
             if i < cross_point:
                 p1_child[i] = self.p1.np_alignment[i].copy()
                 p2_child[i] = self.p2.np_alignment[i].copy()
-        #self.p1.np_alignment = p1_child.copy()
-        #self.p2.np_alignment = p2_child.copy()
+
         child_alignment_1 = Alignment.Alignment(p1_child, self.p1.names)
         child_alignment_2 = Alignment.Alignment(p2_child, self.p2.names)
         child_alignment_1.remove_gap_col()
@@ -206,13 +198,11 @@ class Crossover():
            
         if p1_num_col < p2_num_col:
             # line up a col in p1
-            #print "p2_indexs", p2_indexs
             which_col = randint(0, p2_num_col-1)
             child = self.__match_the_col(self.p1, self.p2, p2_indexs[which_col])
 
         elif p2_num_col < p1_num_col:
             #line up a col in p2
-            #print "p1_indexs", p1_indexs
             which_col = randint(0, p1_num_col-1)
             child = self.__match_the_col(self.p2, self.p1, p1_indexs[which_col])
         else:
@@ -233,16 +223,11 @@ class Crossover():
 
     def __match_the_col(self, p1, p2, which_col):
         """
-           Do the work of matching a colume in an alignment
+           Do the work of matching a column in an alignment
         """
         
         try:
             left_child = p2.np_alignment[:,:which_col+1].copy()
-            #print "left_child"
-            #for line in left_child:
-            #    print ''.join(line)
-            #print "p2"
-            #p2.print_seq()
             # first count the correct number of letters to the fully aligned col in p2
             letter_num = []
             for line in left_child:
@@ -251,7 +236,6 @@ class Crossover():
                     if value != '-':
                         letter_count += 1
                 letter_num.append(letter_count)
-            #print "letter_num", letter_num
             # next find the index of that letter in p1
             index = []
             for i, line in enumerate(p1.np_alignment):
@@ -266,12 +250,10 @@ class Crossover():
             # find which line the letter has the highest index
             largest_index_value = 0
             largest_index_line = 0
-            #print "index", index
             for i, value in enumerate(index):
                 if value > largest_index_value:
                     largest_index_value = value
                     largest_index_line = i
-            #print "lagerst_index", largest_index_line
             # move all the other lines to that index 
             for line_num, line in enumerate(p1.np_alignment):
                 if line_num != largest_index_line:
@@ -298,4 +280,3 @@ class Crossover():
         alignment.np_alignment[row][col] = '-'
         # put the rest of the row back after the gap '-'
         alignment.np_alignment[row][col+1:] = rest_of_col
-

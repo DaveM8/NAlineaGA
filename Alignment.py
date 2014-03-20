@@ -5,12 +5,17 @@ import numpy as np
 number = 0
 class Alignment():
     def __init__(self, np_alignment, names):
-        """Set up the object to pre form an aligment"""
+        """
+           Set up the object to preform an aligment
+        """
         global number
         self.np_alignment = np_alignment
         self.names = names
         self.id = number
         number += 1
+        self.changed = False
+        self.score_of_pairs = None
+        self.score_identity = None
     
     def same_alignment(self, other_aligment):
         """
@@ -133,17 +138,23 @@ class Alignment():
         """Calulate the fittness of an Alignment
            Return a tupel containing (sum-of-pairs, index)
         """
+        if not self.changed and self.score_of_pairs is not None and self.score_identity is not None:
+            return self.score_of_pairs, self.score_identity
+
         score = Scoring.Scoring(self)
 
         self.score_of_pairs = score.sum_of_pairs()
         self.score_identity = score.identity()
-
+        
+        self.changed = False
         return self.score_of_pairs, self.score_identity
+
     def mutation(self, smart = True):
         """ preform one of the six mutations at random 
             on the aligment. by pasing the data to a
             mutation object
         """
+        self.changed = True
         mu = Mutate(self)
         self.np_alignment = mu.choose_oper()
         self.remove_gap_col()
