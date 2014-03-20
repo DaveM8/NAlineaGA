@@ -1,6 +1,7 @@
 import numpy as np
 from random import randint
 import copy
+import math
 
 import Alignment
 import Mutate
@@ -8,8 +9,9 @@ from Crossover import Crossover
 from Scoring import Scoring
 
 class GA():
+
     def __init__(self,path_to_data, pop_size=100, num_generations=500,
-                 candidate_size = 2, comparison_size = 10, sigma_share = 3.14):
+                 candidate_size = 2, comparison_size = 10):
         """ class that creates the the pouplation of alignments
             and keeps track of the number of generations
         """
@@ -20,8 +22,36 @@ class GA():
         self.create_population()
         self.candidate_size = candidate_size
         self.comparison_size = comparison_size
-        self.sigma_share = sigma_share
+        self.sigma_share = 0
     
+    def calc_sigma_share(self):
+        """
+           Calculate the value of sigma_share, the radius which
+           repersents the size of the naighbiourhood 
+           
+        """
+        q = 4
+        SOP = []
+        ID = []
+        for key in self.population:
+            sum_of_pairs, identity = self.normal_pop[key]
+            #print sum_of_pairs, identity
+            SOP.append(sum_of_pairs)
+            ID.append(identity)
+        
+        
+        max_min = 0
+        max_min += (max(SOP) - abs(min(SOP))) ** 2
+        max_min += (max(ID) - abs(min(ID))) ** 2
+        
+        r = (max_min ** 0.5) * 0.5
+        
+        share = float(r) / (q ** .5)
+        share += 1
+        if share == 0:
+            share = 3.14
+        return share
+
     def tournament(self):
         """ 
            run a binary tournament to select the best candation for mating
@@ -76,13 +106,7 @@ class GA():
            This function will reduce the fittness of candidates
            depending how many other candidats are in there neighborhood
         """
-        #self.all_scores = {}
-        #for key in self.population:
-        #    self.all_scores[key] = self.population[key]
-        # get the values of the two candidates 
-        #cand_1_SOP, cand_1_ID = self.all_scores[cand_1].fittness()
-        #cand_2_SOP, cand_2_ID = self.all_scores[cand_2].fittness()
-        
+
         # calculate the objective fittness of the soultions
         m1 = self.calc_dist(cand_1)
         m2 = self.calc_dist(cand_2)
@@ -107,19 +131,14 @@ class GA():
             many other soultions reside in the candidates nearbioughood
 
             takes: The candidate ID number
-            retuens: the size of the candidates naigberhood
+            returns: the size of the candidates naigberhood
         """
-        fit_list = []
-        for key in self.population:
-            line = []
-            line.append(key)
-            SOP, ID = self.population[key].fittness()
-            line.append(SOP)
-            line.append(ID)
-            fit_list.append(line)
+        
 
-        dist = np.asarray(fit_list)
-        cand_score = np.tile(self.population[cand].fittness(), (len(dist),1))
+        dist = self.get_normal_fitness()
+        self.sigma_share = self.calc_sigma_share()
+        #dist = np.asarray(fit_list)
+        cand_score = np.tile(self.normal_pop[cand], (len(dist),1))
 
         add_one = np.tile(1,(len(dist),1))
         cand_score[:,2:] += add_one
@@ -130,12 +149,57 @@ class GA():
         ans = np.zeros(len(dist[0]),float)
         ans = np.sum(dist[:,1:],1)
         ans = ans ** 0.5
+        
         sh = 0
         
+        #count = 0
         for i, value in enumerate(ans):
             if value <= self.sigma_share:
                 sh += (1-(value / self.sigma_share))
+                #count += 1
+        #print "count", count
         return sh
+
+    def get_normal_fitness(self):
+        """
+           get the fittness of all individuals in a normalised form
+           All the values between 1 and 2 in the right proportion
+           Used to calulate the neighbourhood
+        """
+        fit_list = []
+        #print "current pop_size", len(self.population)
+        # create a list with the fittness of the whole population
+        for key in self.population:
+            line = []
+            line.append(key)
+            SOP, ID = self.population[key].fittness()
+            line.append(SOP)
+            line.append(ID)
+            fit_list.append(line)
+
+        #put the values into an numpy array
+        fit_values = np.asarray(fit_list, dtype = float)
+        just_values = np.asarray(fit_values[:,1:], dtype = float)
+        # normalise the values between 0 and 1 then add 1.
+        # add one to identity to prevent divide by 0 error
+        add_one = np.tile(1,(len(just_values),1))
+        just_values[:,1:] += add_one
+        min_value = just_values.min(0)
+        max_value = just_values.max(0)
+        min_minus = min_value = max_value
+        normal = np.ones(np.shape(just_values))
+        m = just_values.shape[0]
+        normal = just_values - np.tile(min_value, (m,1))
+        normal = normal/np.tile(min_minus, (m,1))
+        
+        for i, value in enumerate(fit_values):
+            fit_values[i][1] = normal[i][0]
+            fit_values[i][2] = normal[i][1]
+        # put the normalized values back into a dictionary
+        self.normal_pop = {}
+        for i, values in enumerate(normal):
+            self.normal_pop[fit_values[i][0]] = (values[0],values[1])
+        return fit_values
 
 
     def dominates(self,cand_1, cand_2):
@@ -203,6 +267,7 @@ class GA():
                 my_alig.np_alignment = mu.gap_insertion(num_gaps)
             # append the alignment object to the pouplation list
             self.population[my_alig.id] = my_alig
+            
 
     def run(self):
         """ 
@@ -214,7 +279,7 @@ class GA():
         """
         # set up the pouplation
         for gen_num in range(self.num_generations):
-            
+            print "gen_num", gen_num, "pop size", len(self.population)
             if (gen_num % 50 == 0) or gen_num == self.num_generations-1:
                 #print fittness values
                 self.print_fittness(gen_num)
