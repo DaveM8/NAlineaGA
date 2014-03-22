@@ -84,7 +84,6 @@ class Crossover():
 
             # use the correct indexs to create the two child alignments
             for i in range(len(self.p1.np_alignment)):
-                # TODO this is very inefficent need to improve it
 
                 child_1_left = self.p1.np_alignment[i,:split_col].copy()
                 child_2_left = self.p2.np_alignment[i,:p2_index[i]].copy()

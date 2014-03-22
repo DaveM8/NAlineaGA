@@ -30,7 +30,6 @@ class Scoring():
                     if other_row > self.seq_length-1: break
                      # and each value in a row
                     for col_num in range(0, self.seq_length):
-                        #for col_num, value in enumerate(line):
                         # get the two letters we want to compare
                         score_str = self.np_alignment[row_num][col_num] \
                                   + self.np_alignment[other_row][col_num]

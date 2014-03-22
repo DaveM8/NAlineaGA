@@ -10,7 +10,7 @@ from Scoring import Scoring
 
 class GA():
 
-    def __init__(self,path_to_data, pop_size=100, num_generations=500,
+    def __init__(self,path_to_data, pop_size=100, num_generations=1000,
                  candidate_size = 2, comparison_size = 10):
         """ class that creates the the pouplation of alignments
             and keeps track of the number of generations
@@ -24,33 +24,6 @@ class GA():
         self.comparison_size = comparison_size
         self.sigma_share = 0
     
-    def calc_sigma_share(self):
-        """
-           Calculate the value of sigma_share, the radius which
-           repersents the size of the naighbiourhood 
-           
-        """
-        q = 4
-        SOP = []
-        ID = []
-        for key in self.population:
-            sum_of_pairs, identity = self.normal_pop[key]
-            #print sum_of_pairs, identity
-            SOP.append(sum_of_pairs)
-            ID.append(identity)
-        
-        
-        max_min = 0
-        max_min += (max(SOP) - abs(min(SOP))) ** 2
-        max_min += (max(ID) - abs(min(ID))) ** 2
-        
-        r = (max_min ** 0.5) * 0.5
-        
-        share = float(r) / (q ** .5)
-        share += 1
-        if share == 0:
-            share = 3.14
-        return share
 
     def tournament(self):
         """ 
@@ -134,12 +107,15 @@ class GA():
             returns: the size of the candidates naigberhood
         """
         
-
+        # normalise the fittness values and store them in 
+        # a numpy array
         dist = self.get_normal_fitness()
+        # calculate the sigma_share value for the current population
         self.sigma_share = self.calc_sigma_share()
-        #dist = np.asarray(fit_list)
+        
+        # find the eculdeadin distance from all point to the current
         cand_score = np.tile(self.normal_pop[cand], (len(dist),1))
-
+        # add one to prevent divide by zero
         add_one = np.tile(1,(len(dist),1))
         cand_score[:,2:] += add_one
         dist[:,2:] += add_one
@@ -159,7 +135,7 @@ class GA():
                 #count += 1
         #print "count", count
         return sh
-
+    
     def get_normal_fitness(self):
         """
            get the fittness of all individuals in a normalised form
@@ -201,6 +177,32 @@ class GA():
             self.normal_pop[fit_values[i][0]] = (values[0],values[1])
         return fit_values
 
+    def calc_sigma_share(self):
+        """
+           Calculate the value of sigma_share, the radius which
+           repersents the size of the naighbiourhood 
+           
+        """
+        q = 4
+        SOP = []
+        ID = []
+        for key in self.population:
+            sum_of_pairs, identity = self.normal_pop[key]
+            #print sum_of_pairs, identity
+            SOP.append(sum_of_pairs)
+            ID.append(identity)
+        
+        
+        max_min = 0
+        max_min += (max(SOP) - abs(min(SOP))) ** 2
+        max_min += (max(ID) - abs(min(ID))) ** 2
+        
+        r = (max_min ** 0.5) * 0.5
+        
+        share = float(r) / (q ** .5)
+        # add one to share because we added one to the distances calculated
+        share += 1
+        return share
 
     def dominates(self,cand_1, cand_2):
         """
@@ -256,15 +258,12 @@ class GA():
         # read the sequence from file
         np_seq, seq_names = self.read_data()
         for i in range (self.pop_size):
-
             # create an Alignment object with the data
-            my_alig =  Alignment.Alignment(np_seq, seq_names)
-            # keep one copy of the original sequence
-            if i != 0:
+            my_alig = Alignment.Alignment(np_seq.copy(), seq_names)
             # insert between 0 and 15 % of the length number of gaps
-                mu = Mutate.Mutate(my_alig)
-                num_gaps = randint(1, int(my_alig.length * 0.15))
-                my_alig.np_alignment = mu.gap_insertion(num_gaps)
+            mu = Mutate.Mutate(my_alig)
+            num_gaps = randint(1, int(my_alig.length * 0.25))
+            my_alig.np_alignment = mu.gap_insertion(num_gaps)
             # append the alignment object to the pouplation list
             self.population[my_alig.id] = my_alig
             
@@ -279,8 +278,8 @@ class GA():
         """
         # set up the pouplation
         for gen_num in range(self.num_generations):
-            print "gen_num", gen_num, "pop size", len(self.population)
-            if (gen_num % 50 == 0) or gen_num == self.num_generations-1:
+            #print "gen_num", gen_num, "pop size", len(self.population)
+            if (gen_num % 100 == 0) or gen_num == self.num_generations-1:
                 #print fittness values
                 self.print_fittness(gen_num)
             # calculate the number of crossovers and mutations
@@ -310,6 +309,8 @@ class GA():
                     self.population[child_2.id] = child_2
             self.gen_end()
 
+        # print out the best sum of pairs individual
+        # and the best identity inddividual
         scores = []
         new_pop = {}
         for cand in self.population:
@@ -409,6 +410,8 @@ class GA():
             # to seq_name and reset all the vairiblaes
             if line[0] == '}':
                 #we are at the end of a sequence
+                # make the sequence lower case
+                seq_str = seq_str.lower()
                 seq_value.append(seq_str)
                 current_len = len(seq_str)
                 if current_len > max_len:
@@ -438,7 +441,23 @@ class GA():
         return np_seq, seq_name
 
 
-file_name = "results/1aho_pop_100_3.14"
-my_ga = GA("results/1aho.rsf")
+    def test(self):
+        #for key in self.population:
+            #self.population[key].print_seq()
+            #print
+
+        a1 = self.population[0]
+        a2 = self.population[50]
+        a1.print_seq()
+        print
+        a2.print_seq()
+        cross = Crossover(a1,a2)
+        c1, c2 = cross.vertical()
+        print
+        c1.print_seq()
+        print 
+        c2.print_seq()
+file_name = "results/1fmb_final"
+my_ga = GA("results/1fmb.rsf")
 #my_ga.test()
 my_ga.run()
