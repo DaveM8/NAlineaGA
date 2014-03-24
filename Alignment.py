@@ -1,3 +1,32 @@
+###############################################################################
+# Alignment.py - An object to repersent a multiple sequence alignment
+#
+###############################################################################
+# based on the work of
+# da Silva, F. J. M.J., Perez, J. M. S.M., Pulido, J. A. G.A.,
+# and Rodriguez, M. V.A. (2011).
+# Parallel niche pareto AlineaGA-an evolutionary multiobjective
+# approach on multiple sequence alignment.
+# Journal of integrative bioinformatics, 8(3).
+###############################################################################
+# Copyright (C) David Morrisroe 2014
+# pizzadave108 at gmail dot com
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
+###############################################################################
+
+
 from Mutate import Mutate
 import Scoring
 import numpy as np

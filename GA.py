@@ -1,3 +1,31 @@
+###############################################################################
+# GA.py - Object to run a Genteic algorithm
+#
+###############################################################################
+# based on the work of
+# da Silva, F. J. M.J., Perez, J. M. S.M., Pulido, J. A. G.A. 
+# and Rodriguez, M. V.A. (2011).
+# Parallel niche pareto AlineaGA-an evolutionary multiobjective
+# approach on multiple sequence alignment.
+# Journal of integrative bioinformatics, 8(3).
+###############################################################################
+# Copyright (C) David Morrisroe 2014
+# pizzadave108 at gmail dot com
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
+###############################################################################
+
 import numpy as np
 from random import randint
 import copy
@@ -440,22 +468,6 @@ class GA():
         return np_seq, seq_name
 
 
-    def test(self):
-        #for key in self.population:
-            #self.population[key].print_seq()
-            #print
-
-        a1 = self.population[0]
-        a2 = self.population[50]
-        a1.print_seq()
-        print
-        a2.print_seq()
-        cross = Crossover(a1,a2)
-        c1, c2 = cross.vertical()
-        print
-        c1.print_seq()
-        print 
-        c2.print_seq()
 file_name = "results/1fjlA_final_no_remove_gap"
 my_ga = GA("results/1fjlA.rsf")
 #my_ga.test()
