@@ -18,7 +18,6 @@ class Mutate():
         self.num_gaps = num_gaps                  # the number of gaps to insert in gap_insertion()
         self.smart_retry = smart_retry            # number of retrys used in smart operators
         self.num_gaps = num_gaps
-        #self.choose_oper()
     
     def __insert_gap(self, row, col):
         """
@@ -32,7 +31,7 @@ class Mutate():
             #only insert a gap the last value is a gap '-'
             # make a copy of the rest of the row droping the last '-'
             rest_of_col = self.obj.np_alignment[row][col:-1].copy()
-            #insert a gap '-'
+            #insert the gap '-'
             self.obj.np_alignment[row][col] = '-'
             # put the rest of the row back after the gap '-'
             self.obj.np_alignment[row][col+1:] = rest_of_col
@@ -70,7 +69,7 @@ class Mutate():
         """
             randomly choose which if any operator is used on the alignment 
         """
-        rand_num = randint(1,8)
+        rand_num = randint(1,7)
     
         if rand_num == 1:
             return self.gap_insertion()
@@ -340,6 +339,9 @@ class Mutate():
                   False self.alignment is better
         """
         
+        # A new scoring object is always created when checking for
+        # better mutations as apposed to Alignment.fittness()
+        # to prevent a stored value being used
         test_score = Scoring(self.old_alignment)
         self_score = Scoring(self.obj)
 

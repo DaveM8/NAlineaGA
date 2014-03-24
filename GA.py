@@ -128,12 +128,9 @@ class GA():
         
         sh = 0
         
-        #count = 0
         for i, value in enumerate(ans):
             if value <= self.sigma_share:
                 sh += (1-(value / self.sigma_share))
-                #count += 1
-        #print "count", count
         return sh
     
     def get_normal_fitness(self):
@@ -259,6 +256,8 @@ class GA():
         np_seq, seq_names = self.read_data()
         for i in range (self.pop_size):
             # create an Alignment object with the data
+            # the copy() is very important so all individuals do not
+            # point to the same array
             my_alig = Alignment.Alignment(np_seq.copy(), seq_names)
             # insert between 0 and 15 % of the length number of gaps
             mu = Mutate.Mutate(my_alig)
@@ -457,7 +456,7 @@ class GA():
         c1.print_seq()
         print 
         c2.print_seq()
-file_name = "results/1fmb_final"
-my_ga = GA("results/1fmb.rsf")
+file_name = "results/1fjlA_final_no_remove_gap"
+my_ga = GA("results/1fjlA.rsf")
 #my_ga.test()
 my_ga.run()
