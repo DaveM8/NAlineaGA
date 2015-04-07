@@ -38,7 +38,7 @@ from Scoring import Scoring
 
 class GA():
 
-    def __init__(self,path_to_data, pop_size=100, num_generations=1000,
+    def __init__(self,path_to_data, pop_size=120, num_generations=1000,
                  candidate_size = 2, comparison_size = 10):
         """ class that creates the the pouplation of alignments
             and keeps track of the number of generations
