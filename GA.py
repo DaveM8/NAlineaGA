@@ -307,6 +307,10 @@ class GA():
         for gen_num in range(self.num_generations):
             #print "gen_num", gen_num, "pop size", len(self.population)
             if (gen_num % 100 == 0) or gen_num == self.num_generations-1:
+                if gen_num == 0:
+                    rand_cand = self.random_candidate()
+                    print self.population[rand_cand].fittness()
+                    self.population[rand_cand].print_seq()
                 #print fittness values
                 self.print_fittness(gen_num)
             # calculate the number of crossovers and mutations
@@ -363,8 +367,8 @@ class GA():
            Print the values of the fittness individulas
            write them to a .csv file for use results
         """
-        global file_name
-        #file_name = self.data_file
+        #global file_name
+        file_name = self.data_file
         scores = []
         new_pop = {}
     
@@ -467,8 +471,3 @@ class GA():
                     np_seq[i][j] = '-'
         return np_seq, seq_name
 
-
-file_name = "results/1fjlA_final_no_remove_gap"
-my_ga = GA("results/1fjlA.rsf")
-#my_ga.test()
-my_ga.run()

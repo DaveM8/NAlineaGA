@@ -118,7 +118,7 @@ class Mutate():
         elif rand_num == 8:
             return self.gap_remove()
         
-    def gap_insertion(self,max_gaps = 10):
+    def gap_insertion(self,max_gaps = 5):
         """
            insert num_gaps number of gaps at a random possition
            in each row
